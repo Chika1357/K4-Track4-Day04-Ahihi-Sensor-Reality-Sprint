@@ -7,6 +7,11 @@ Plot:
   3. Trajectory: quỹ đạo 2D của vật thể phía trước xe
 """
 
+import sys
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -59,7 +64,7 @@ def plot_error_vs_offset(results_csv: str, output_dir: str = './plots'):
     plt.tight_layout()
     output_path = os.path.join(output_dir, 'error_vs_offset.png')
     plt.savefig(output_path, dpi=100)
-    print(f"✓ Saved: {output_path}")
+    print(f"[OK] Saved: {output_path}")
     plt.close()
 
 
@@ -101,7 +106,7 @@ def plot_comparison_pre_post(results_csv: str, output_dir: str = './plots'):
     plt.tight_layout()
     output_path = os.path.join(output_dir, 'comparison_pre_post.png')
     plt.savefig(output_path, dpi=100)
-    print(f"✓ Saved: {output_path}")
+    print(f"[OK] Saved: {output_path}")
     plt.close()
 
 
@@ -155,7 +160,46 @@ def plot_failure_heatmap(results_csv: str, output_dir: str = './plots'):
     plt.tight_layout()
     output_path = os.path.join(output_dir, 'failure_heatmap.png')
     plt.savefig(output_path, dpi=100)
-    print(f"✓ Saved: {output_path}")
+    print(f"[OK] Saved: {output_path}")
+    plt.close()
+
+
+def plot_trajectory_2d(results_csv: str, output_dir: str = './plots'):
+    """Vẽ plot: Quỹ đạo 2D của vật thể (chỉ vị trí, không có thời gian)"""
+    
+    os.makedirs(output_dir, exist_ok=True)
+    
+    df = pd.read_csv(results_csv)
+    
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    scenarios = sorted(df['scenario'].unique())
+    colors_scenario = {'Straight Line': 'blue', 'Acceleration': 'green', 'Turning': 'red'}
+    markers = {10: 'o', 20: 's', 40: '^'}
+    
+    for scenario in scenarios:
+        for distance in sorted(df['distance_m'].unique()):
+            df_filtered = df[(df['scenario'] == scenario) & (df['distance_m'] == distance)]
+            
+            color = colors_scenario.get(scenario, 'black')
+            marker = markers.get(distance, 'x')
+            
+            # Vị trí vật thể (distance dọc trục x, 0 dọc trục y)
+            ax.scatter([distance], [0], s=200, color=color, marker=marker, 
+                      alpha=0.7, label=f'{scenario} @ {distance}m', edgecolors='black', linewidth=1)
+    
+    ax.set_xlabel('Distance (m)')
+    ax.set_ylabel('Lateral Position (m)')
+    ax.set_title('Object Positions (Static Objects)')
+    ax.grid(True, alpha=0.3)
+    ax.legend(fontsize=9)
+    ax.set_xlim(0, 50)
+    ax.set_ylim(-5, 5)
+    
+    plt.tight_layout()
+    output_path = os.path.join(output_dir, 'trajectory_2d.png')
+    plt.savefig(output_path, dpi=100)
+    print(f"[OK] Saved: {output_path}")
     plt.close()
 
 
@@ -171,8 +215,9 @@ if __name__ == "__main__":
         plot_error_vs_offset(results_csv, output_dir)
         plot_comparison_pre_post(results_csv, output_dir)
         plot_failure_heatmap(results_csv, output_dir)
+        plot_trajectory_2d(results_csv, output_dir)
         
-        print(f"\n✓ All plots saved to {output_dir}/")
+        print(f"\n[OK] All plots saved to {output_dir}/")
     else:
         print(f"Error: {results_csv} not found. Run benchmark first.")
         sys.exit(1)
