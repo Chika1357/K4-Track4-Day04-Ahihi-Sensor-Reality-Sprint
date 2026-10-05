@@ -8,6 +8,11 @@ Nhiệm vụ:
   - Ghi log chi tiết
 """
 
+import sys
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+
 import yaml
 import numpy as np
 import pandas as pd
@@ -27,7 +32,7 @@ def run_benchmark(config_path: str):
     """Chạy toàn bộ benchmark"""
     
     # Load config
-    with open(config_path, 'r') as f:
+    with open(config_path, 'r', encoding='utf-8') as f:
         config_dict = yaml.safe_load(f)
     
     # Tạo thư mục output
@@ -43,7 +48,7 @@ def run_benchmark(config_path: str):
     all_results = []
     failure_cases = []
     
-    with open(log_file, 'w') as log:
+    with open(log_file, 'w', encoding='utf-8') as log:
         log.write(f"=== CHỐT LAB T4 Benchmark ===\n")
         log.write(f"Start: {datetime.now()}\n")
         log.write(f"Config: {config_path}\n\n")
