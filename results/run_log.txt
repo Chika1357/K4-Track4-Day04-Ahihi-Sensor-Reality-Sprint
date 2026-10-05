@@ -1,8 +1,8 @@
 Camera-LiDAR timing benchmark
-run_at=2026-10-05T19:46:26
+run_at=2026-10-05T23:21:32
 command=D:\Lab_VinUni\Lab_Phase2\Lab_4_team\K4-Track4-Day4-Ahihi\src\run_benchmark.py --config config_chot.yaml
 config=D:\Lab_VinUni\Lab_Phase2\Lab_4_team\K4-Track4-Day4-Ahihi\config_chot.yaml
-git_revision=0fb1450cf5db15bbd55f802458487689bfd76d5f
+git_revision=979355addfd972ada1466d5b493f752624c16d2a
 python=3.13.9
 numpy=2.4.6
 pandas=3.0.3
