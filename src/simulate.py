@@ -1,186 +1,79 @@
-"""
-simulate.py - TV3: Mô phỏng quỹ đạo xe, timestamp camera-LiDAR, tính E_pre
+"""Synthetic 2-D camera--LiDAR timing benchmark.
 
-Quy ước:
-  - Camera: 30 Hz, LiDAR: 10 Hz, thời lượng: 10 s
-  - LiDAR báo timestamp t_report, nhưng thực sự chụp lúc t_true = t_report - offset
-  - Mỗi frame LiDAR: Vật thể tĩnh cách xe d mét phía trước tại thời điểm t_true
-  - LiDAR đo trong hệ thân xe lúc t_true kèm nhiễu Gaussian sigma = 0.02 m
-  - Fusion ngây thơ (chưa bù): Dùng pose xe lúc t_report để chiếu điểm LiDAR ra hệ world
-  - E_pre: Sai số khoảng cách giữa vị trí fusion và vị trí thật của vật thể
+Each row is an independent reference-time experiment. The object is static
+within that experiment and is placed ``distance_m`` ahead of the ego vehicle
+at the camera/reference time. LiDAR observes it at ``t_ref - offset``.
 """
 
-import sys
+from __future__ import annotations
 
-if hasattr(sys.stdout, 'reconfigure'):
-    try:
-        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
-    except Exception:
-        pass
+from typing import Any, Dict, Tuple
 
 import numpy as np
 import pandas as pd
-import yaml
-from typing import Dict, Tuple, Optional
 
 
-@dataclass
-class SimulationConfig:
-    """Cấu hình mô phỏng"""
-    duration_sec: float
-    velocity_ms: float
-    acceleration_ms2: float
-    turn_radius_m: float = None
-    yaw_rate_rads: float = 0.0
-    camera_freq_hz: int = 30
-    lidar_freq_hz: int = 10
-    object_distance_m: float = 10.0
-    lidar_noise_sigma_m: float = 0.02
-    random_seed: int = 42
+def _scenario(cfg: Dict[str, Any], scenario: str) -> Dict[str, Any]:
+    return cfg["scenarios"][scenario]
 
 
-class ObjectTrajectorySimulator:
-    """Mô phỏng quỹ đạo xe và vị trí vật thể"""
-    
-    def __init__(self, config: SimulationConfig):
-        self.config = config
-        np.random.seed(config.random_seed)
-        self.rng = np.random.RandomState(config.random_seed)
-    
-    def get_vehicle_state(self, t: float) -> Tuple[float, float, float, float]:
-        """
-        Lấy vị trí và hướng xe tại thời gian t
-        
-        Returns:
-            (x, y, yaw, v) - vị trí xe (m), hướng (rad), vận tốc (m/s)
-        """
-        # Vị trí xe dọc trục x (chuyển động thuận)
-        if self.config.acceleration_ms2 != 0:
-            # Tăng tốc: x = v0*t + 0.5*a*t²
-            x = self.config.velocity_ms * t + 0.5 * self.config.acceleration_ms2 * t**2
-            v = self.config.velocity_ms + self.config.acceleration_ms2 * t
-        else:
-            # Chuyển động đều
-            x = self.config.velocity_ms * t
-            v = self.config.velocity_ms
-        
-        # Góc quay (yaw)
-        yaw = self.config.yaw_rate_rads * t
-        
-        # Vị trí y (0 nếu chạy thẳng)
-        if self.config.turn_radius_m is not None and self.config.turn_radius_m > 0:
-            # Quỹ đạo tròn: y = R * (1 - cos(yaw))
-            y = self.config.turn_radius_m * (1 - np.cos(yaw))
-        else:
-            y = 0.0
-        
-        return x, y, yaw, v
-    
-    def get_object_position_camera_frame(self, t: float) -> Tuple[float, float]:
-        """
-        Vị trí vật thể trong hệ tọa độ camera (xe)
-        Vật thể tĩnh trong hệ tọa độ tuyệt đối ở vị trí (object_distance_m, 0)
-        
-        Returns:
-            (obj_x, obj_y) - tọa độ vật thể so với xe ở thời gian t
-        """
-        # Vị trí vật thể tĩnh trong hệ tọa độ tuyệt đối
-        obj_abs_x = self.config.object_distance_m
-        obj_abs_y = 0.0
-        
-        # Vị trí xe
-        xe_x, xe_y, yaw, _ = self.get_vehicle_state(t)
-        
-        # Chuyển vị trí vật thể từ hệ tọa độ tuyệt đối sang hệ tọa độ xe
-        # Bước 1: Dịch xe về gốc
-        dx = obj_abs_x - xe_x
-        dy = obj_abs_y - xe_y
-        
-        # Bước 2: Quay ngược góc xe để đưa vào hệ xe (rotate by -yaw)
-        cos_yaw = np.cos(-yaw)
-        sin_yaw = np.sin(-yaw)
-        obj_x = dx * cos_yaw - dy * sin_yaw
-        obj_y = -dx * sin_yaw + dy * cos_yaw
-        
-        return obj_x, obj_y
-    
-    def simulate(self) -> Dict:
-        """
-        Chạy mô phỏng và trả về timestamp + vị trí
-        
-        Returns:
-            dict với keys: camera_times, lidar_times, camera_obj_pos, lidar_obj_pos_noisy
-        """
-        # Tạo timestamp
-        camera_dt = 1.0 / self.config.camera_freq_hz
-        lidar_dt = 1.0 / self.config.lidar_freq_hz
-        
-        camera_times = np.arange(0, self.config.duration_sec, camera_dt)
-        lidar_times = np.arange(0, self.config.duration_sec, lidar_dt)
-        
-        # 2. Vật thể tĩnh nằm cách xe distance_m mét thẳng phía trước theo hướng xe lúc t_true
-        x_obj_true = x_veh_true + distance_m * np.cos(yaw_true)
-        y_obj_true = y_veh_true + distance_m * np.sin(yaw_true)
-        
-        # 3. Tọa độ điểm vật thể trong hệ quy chiếu thân xe tại t_true (kèm nhiễu đo)
-        # Trong hệ thân xe, trục x trỏ thẳng phía trước, trục y trỏ sang trái:
-        noise_x = rng.normal(0, sigma)
-        noise_y = rng.normal(0, sigma)
-        x_lidar = distance_m + noise_x
-        y_lidar = 0.0 + noise_y
-        
-        # 4. Trạng thái xe tại thời điểm báo cáo t_report (khi fusion nhận được dữ liệu)
-        x_veh_rep, y_veh_rep, yaw_rep, _, _ = get_vehicle_state(t_rep, scen_cfg)
-        
-        # 5. Fusion ngây thơ (chưa bù): Chiếu điểm LiDAR ra hệ world bằng pose t_report
-        cos_rep = np.cos(yaw_rep)
-        sin_rep = np.sin(yaw_rep)
-        x_fusion_pre = x_veh_rep + (x_lidar * cos_rep - y_lidar * sin_rep)
-        y_fusion_pre = y_veh_rep + (x_lidar * sin_rep + y_lidar * cos_rep)
-        
-        # 6. Sai số E_pre = khoảng cách Euclidean giữa vị trí fusion và vị trí thật
-        e_pre = np.sqrt((x_fusion_pre - x_obj_true) ** 2 + (y_fusion_pre - y_obj_true) ** 2)
-        
+def vehicle_state(t: float, scenario_cfg: Dict[str, Any]) -> Tuple[float, float, float, float, float]:
+    """Return x, y, yaw, speed, yaw-rate for the configured ego motion."""
+    kind = scenario_cfg["type"]
+    if kind == "constant_velocity":
+        speed = float(scenario_cfg["speed_mps"])
+        return speed * t, 0.0, 0.0, speed, 0.0
+    if kind == "constant_acceleration":
+        v0 = float(scenario_cfg["initial_speed_mps"])
+        accel = float(scenario_cfg["acceleration_mps2"])
+        return v0 * t + 0.5 * accel * t * t, 0.0, 0.0, v0 + accel * t, 0.0
+    if kind == "constant_turn_rate":
+        speed = float(scenario_cfg["speed_mps"])
+        radius = float(scenario_cfg["radius_m"])
+        yaw_rate = speed / radius
+        yaw = yaw_rate * t
+        return radius * np.sin(yaw), radius * (1.0 - np.cos(yaw)), yaw, speed, yaw_rate
+    raise ValueError(f"Unsupported scenario type: {kind}")
+
+
+def rotate(vector: np.ndarray, angle: float) -> np.ndarray:
+    c, s = np.cos(angle), np.sin(angle)
+    return np.array([c * vector[0] - s * vector[1], s * vector[0] + c * vector[1]])
+
+
+def to_world(local: np.ndarray, pose: Tuple[float, float, float, float, float]) -> np.ndarray:
+    return np.asarray(pose[:2], dtype=float) + rotate(local, pose[2])
+
+
+def to_local(world: np.ndarray, pose: Tuple[float, float, float, float, float]) -> np.ndarray:
+    return rotate(np.asarray(world, dtype=float) - np.asarray(pose[:2], dtype=float), -pose[2])
+
+
+def run_simulation(scenario: str, offset_ms: int, distance_m: int, cfg: Dict[str, Any]) -> pd.DataFrame:
+    """Generate samples, ground truth, and naive pre-compensation error."""
+    bench = cfg["benchmark"]
+    scenario_cfg = _scenario(cfg, scenario)
+    dt = float(offset_ms) / 1000.0
+    count = int(bench["samples_per_condition"])
+    t_ref = float(bench["reference_start_s"]) + np.arange(count) / float(bench["reference_rate_hz"])
+    seed = int(bench["seed"]) + {"A": 0, "B": 10_000, "C": 20_000}[scenario] + int(offset_ms) * 10 + int(distance_m)
+    rng = np.random.default_rng(seed)
+    noise_std = float(bench["noise_std_per_axis_m"])
+    records = []
+    for frame, t in enumerate(t_ref):
+        t_capture = t - dt
+        pose_ref = vehicle_state(float(t), scenario_cfg)
+        pose_capture = vehicle_state(float(t_capture), scenario_cfg)
+        object_world = to_world(np.array([float(distance_m), 0.0]), pose_ref)
+        lidar_local = to_local(object_world, pose_capture) + rng.normal(0.0, noise_std, size=2)
+        pre_world = to_world(lidar_local, pose_ref)
         records.append({
-            'frame': frame_idx,
-            't_report': t_rep,
-            't_true': t_true,
-            'x_true': x_obj_true,
-            'y_true': y_obj_true,
-            'x_lidar': x_lidar,
-            'y_lidar': y_lidar,
-            'v': v_true,
-            'yaw_rate': yaw_rate_true,
-            'e_pre': e_pre
+            "frame": frame, "t_ref": t, "t_capture": t_capture,
+            "x_true": object_world[0], "y_true": object_world[1],
+            "x_lidar": lidar_local[0], "y_lidar": lidar_local[1],
+            "x_ref": pose_ref[0], "y_ref": pose_ref[1], "yaw_ref": pose_ref[2],
+            "v_ref": pose_ref[3], "yaw_rate_ref": pose_ref[4],
+            "x_pre": pre_world[0], "y_pre": pre_world[1],
+            "e_pre": float(np.linalg.norm(pre_world - object_world)),
         })
-        
-    df = pd.DataFrame(records)
-    return df
-
-
-if __name__ == "__main__":
-    with open("config.yaml", "r", encoding="utf-8") as f:
-        cfg = yaml.safe_load(f)
-        
-    print("=" * 70)
-    print("TV3 SELF-TEST: Kiểm tra hàm run_simulation theo Checklist")
-    print("=" * 70)
-    
-    # Test 1: Offset = 0 ms -> E_pre phải xấp xỉ mức nhiễu (0.02 - 0.03 m)
-    df_0 = run_simulation('scenario_a_straight', offset_ms=0, distance_m=10, cfg=cfg)
-    e_pre_0_mean = df_0['e_pre'].mean()
-    print(f"\n[Test Offset 0 ms] Kịch bản A, d=10m:")
-    print(f"  E_pre mean: {e_pre_0_mean:.4f} m (Kỳ vọng ≈ 0.02 - 0.03 m) -> {'PASS' if e_pre_0_mean < 0.05 else 'FAIL'}")
-    
-    # Test 2: Kịch bản A, Offset = 100 ms -> E_pre phải xấp xỉ 2.0 m (20 m/s * 0.1 s)
-    df_100 = run_simulation('scenario_a_straight', offset_ms=100, distance_m=20, cfg=cfg)
-    e_pre_100_mean = df_100['e_pre'].mean()
-    print(f"\n[Test Offset 100 ms] Kịch bản A, v=20m/s, dt=0.1s:")
-    print(f"  E_pre mean: {e_pre_100_mean:.4f} m (Kỳ vọng ≈ 2.0 m) -> {'PASS' if abs(e_pre_100_mean - 2.0) < 0.05 else 'FAIL'}")
-    
-    print("\nDataFrame Output Columns:")
-    print(df_100.columns.tolist())
-    print("\nHead 3 rows:")
-    print(df_100.head(3))
-    print("=" * 70)
+    return pd.DataFrame.from_records(records)
