@@ -1,0 +1,32 @@
+# Tham số đã chốt; runner chưa triển khai khi tạo file.
+benchmark:
+  scenarios: [A, B, C]
+  offsets_ms: [0, 50, 100, 150, 200]
+  distances_m: [10, 20, 40]
+  samples_per_condition: 100
+  reference_start_s: 0.2
+  reference_rate_hz: 10
+  camera_rate_hz: 30
+  lidar_rate_hz: 10
+  independent_trials: true
+  seed: 42
+  noise_std_per_axis_m: 0.02
+  threshold_m: 0.5
+  yaw_rate_epsilon_radps: 1.0e-8
+
+scenarios:
+  A:
+    type: constant_velocity
+    speed_mps: 20.0
+  B:
+    type: constant_acceleration
+    initial_speed_mps: 10.0
+    acceleration_mps2: 3.0
+  C:
+    type: constant_turn_rate
+    speed_mps: 10.0
+    radius_m: 30.0
+
+output:
+  results_dir: results
+  plots_dir: plots
