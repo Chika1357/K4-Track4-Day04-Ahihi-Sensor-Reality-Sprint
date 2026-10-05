@@ -36,12 +36,12 @@ class ObjectTrajectorySimulator:
         np.random.seed(config.random_seed)
         self.rng = np.random.RandomState(config.random_seed)
     
-    def get_vehicle_state(self, t: float) -> Tuple[float, float, float]:
+    def get_vehicle_state(self, t: float) -> Tuple[float, float, float, float]:
         """
         Lấy vị trí và hướng xe tại thời gian t
         
         Returns:
-            (x, y, yaw) - vị trí xe (m) và hướng (rad)
+            (x, y, yaw, v) - vị trí xe (m), hướng (rad), vận tốc (m/s)
         """
         # Vị trí xe dọc trục x (chuyển động thuận)
         if self.config.acceleration_ms2 != 0:
@@ -81,15 +81,15 @@ class ObjectTrajectorySimulator:
         xe_x, xe_y, yaw, _ = self.get_vehicle_state(t)
         
         # Chuyển vị trí vật thể từ hệ tọa độ tuyệt đối sang hệ tọa độ xe
-        # Áp dụng inverse transform: dịch (-xe_x, -xe_y) rồi quay (-yaw)
+        # Bước 1: Dịch xe về gốc
         dx = obj_abs_x - xe_x
         dy = obj_abs_y - xe_y
         
-        # Quay ngược (-yaw)
+        # Bước 2: Quay ngược góc xe để đưa vào hệ xe (rotate by -yaw)
         cos_yaw = np.cos(-yaw)
         sin_yaw = np.sin(-yaw)
         obj_x = dx * cos_yaw - dy * sin_yaw
-        obj_y = dx * sin_yaw + dy * cos_yaw
+        obj_y = -dx * sin_yaw + dy * cos_yaw
         
         return obj_x, obj_y
     

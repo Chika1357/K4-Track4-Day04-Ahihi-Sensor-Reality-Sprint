@@ -77,18 +77,18 @@
 ## 👤 TV3: Code mô phỏng (`simulate.py`, `config.yaml`) · Pitch slide 3 (demo)
 
 ### Phút 15–45
-- [ ] Viết `config.yaml` đúng thông số chốt:
-  - [ ] camera 30 Hz, LiDAR 10 Hz, thời lượng 10 s
-  - [ ] offset: 0, 50, 100, 150, 200 ms
-  - [ ] kịch bản A: 20 m/s thẳng; B: từ 10 m/s, a = 3 m/s²; C: 10 m/s, R = 30 m
-  - [ ] khoảng cách vật thể: 10, 20, 40 m
-  - [ ] nhiễu σ = 0,02 m, seed = 42
-- [ ] Hàm sinh quỹ đạo ego cho A, B, C, trả về theo thời gian: `x, y, yaw, v, yaw_rate`.
-- [ ] Hàm sinh timestamp: camera và LiDAR. Quy ước: LiDAR **báo** timestamp `t_report`, nhưng **thực sự chụp** lúc `t_true = t_report − Δt`.
-- [ ] Mỗi frame LiDAR: đặt vật thể tĩnh cách xe `d` mét phía trước; đo vật thể trong hệ tọa độ xe lúc `t_true`, cộng nhiễu.
-- [ ] Fusion (cố ý sai): dùng pose xe lúc `t_report` để đổi điểm LiDAR ra hệ world.
-- [ ] Tính **E_pre** = khoảng cách giữa vị trí fusion và vị trí thật của vật thể.
-- [ ] Hàm chính, trả về DataFrame:
+- [X] Viết `config.yaml` đúng thông số chốt:
+  - [X] camera 30 Hz, LiDAR 10 Hz, thời lượng 10 s
+  - [X] offset: 0, 50, 100, 150, 200 ms
+  - [X] kịch bản A: 20 m/s thẳng; B: từ 10 m/s, a = 3 m/s²; C: 10 m/s, R = 30 m
+  - [X] khoảng cách vật thể: 10, 20, 40 m
+  - [X] nhiễu σ = 0,02 m, seed = 42
+- [X] Hàm sinh quỹ đạo ego cho A, B, C, trả về theo thời gian: `x, y, yaw, v, yaw_rate`.
+- [X] Hàm sinh timestamp: camera và LiDAR. Quy ước: LiDAR **báo** timestamp `t_report`, nhưng **thực sự chụp** lúc `t_true = t_report − Δt`.
+- [X] Mỗi frame LiDAR: đặt vật thể tĩnh cách xe `d` mét phía trước; đo vật thể trong hệ tọa độ xe lúc `t_true`, cộng nhiễu.
+- [X] Fusion (cố ý sai): dùng pose xe lúc `t_report` để đổi điểm LiDAR ra hệ world.
+- [X] Tính **E_pre** = khoảng cách giữa vị trí fusion và vị trí thật của vật thể.
+- [X] Hàm chính, trả về DataFrame:
   `run_simulation(scenario, offset_ms, distance_m, cfg)`
   → cột: `frame, t_report, t_true, x_true, y_true, x_lidar, y_lidar, v, yaw_rate, e_pre`
 

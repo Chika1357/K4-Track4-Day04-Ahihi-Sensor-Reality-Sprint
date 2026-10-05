@@ -1,5 +1,5 @@
 === CHỐT LAB T4 Benchmark ===
-Start: 2026-10-05 16:55:59.499578
+Start: 2026-10-05 17:34:36.621950
 Config: config.yaml
 
 
@@ -306,9 +306,9 @@ Status: FAIL (E > 0.50m)
 ============================================================
 Scenario: Turning | Offset: 0ms | Distance: 10m
 ============================================================
-E_pre:      mean=0.5123m  max=1.4351m
-E_post:     mean=52.9394m  max=125.7287m  (linear)
-E_post_yaw: mean=52.9394m  max=125.7287m  (with yaw)
+E_pre:      mean=0.5103m  max=1.5376m
+E_post:     mean=41.8688m  max=155.6265m  (linear)
+E_post_yaw: mean=41.8688m  max=155.6265m  (with yaw)
 Formula deviation: 0.00%
 Velocity: 10.00m/s, Yaw rate: 0.330rad/s
 Status: FAIL (E > 0.50m)
@@ -316,9 +316,9 @@ Status: FAIL (E > 0.50m)
 ============================================================
 Scenario: Turning | Offset: 0ms | Distance: 20m
 ============================================================
-E_pre:      mean=0.5062m  max=1.3575m
-E_post:     mean=51.6482m  max=115.4149m  (linear)
-E_post_yaw: mean=51.6482m  max=115.4149m  (with yaw)
+E_pre:      mean=0.4819m  max=1.4455m
+E_post:     mean=37.8370m  max=137.9610m  (linear)
+E_post_yaw: mean=37.8370m  max=137.9610m  (with yaw)
 Formula deviation: 0.00%
 Velocity: 10.00m/s, Yaw rate: 0.330rad/s
 Status: FAIL (E > 0.50m)
@@ -326,9 +326,9 @@ Status: FAIL (E > 0.50m)
 ============================================================
 Scenario: Turning | Offset: 0ms | Distance: 40m
 ============================================================
-E_pre:      mean=0.5240m  max=1.2174m
-E_post:     mean=54.1064m  max=101.1490m  (linear)
-E_post_yaw: mean=54.1064m  max=101.1490m  (with yaw)
+E_pre:      mean=0.4613m  max=1.2701m
+E_post:     mean=37.0185m  max=102.6896m  (linear)
+E_post_yaw: mean=37.0185m  max=102.6896m  (with yaw)
 Formula deviation: 0.00%
 Velocity: 10.00m/s, Yaw rate: 0.330rad/s
 Status: FAIL (E > 0.50m)
@@ -336,120 +336,120 @@ Status: FAIL (E > 0.50m)
 ============================================================
 Scenario: Turning | Offset: 50ms | Distance: 10m
 ============================================================
-E_pre:      mean=1.4753m  max=4.2449m
-E_post:     mean=52.8202m  max=126.2087m  (linear)
-E_post_yaw: mean=53.2177m  max=125.5644m  (with yaw)
-Formula deviation: 195.06%
+E_pre:      mean=1.4698m  max=4.5671m
+E_post:     mean=41.8032m  max=156.0146m  (linear)
+E_post_yaw: mean=41.8936m  max=155.1346m  (with yaw)
+Formula deviation: 193.95%
 Velocity: 10.00m/s, Yaw rate: 0.330rad/s
 Status: FAIL (E > 0.50m)
 
 ============================================================
 Scenario: Turning | Offset: 50ms | Distance: 20m
 ============================================================
-E_pre:      mean=1.4543m  max=4.0161m
-E_post:     mean=51.4834m  max=115.8749m  (linear)
-E_post_yaw: mean=51.9316m  max=115.1437m  (with yaw)
-Formula deviation: 190.86%
+E_pre:      mean=1.3818m  max=4.2831m
+E_post:     mean=37.6731m  max=138.3460m  (linear)
+E_post_yaw: mean=38.0300m  max=137.5424m  (with yaw)
+Formula deviation: 176.36%
 Velocity: 10.00m/s, Yaw rate: 0.330rad/s
 Status: FAIL (E > 0.50m)
 
 ============================================================
 Scenario: Turning | Offset: 50ms | Distance: 40m
 ============================================================
-E_pre:      mean=1.4969m  max=3.6058m
-E_post:     mean=53.8725m  max=101.5303m  (linear)
-E_post_yaw: mean=54.4950m  max=100.7085m  (with yaw)
-Formula deviation: 199.39%
+E_pre:      mean=1.3097m  max=3.7714m
+E_post:     mean=36.7389m  max=103.0652m  (linear)
+E_post_yaw: mean=37.2381m  max=102.4137m  (with yaw)
+Formula deviation: 161.95%
 Velocity: 10.00m/s, Yaw rate: 0.330rad/s
 Status: FAIL (E > 0.50m)
 
 ============================================================
 Scenario: Turning | Offset: 100ms | Distance: 10m
 ============================================================
-E_pre:      mean=2.2834m  max=5.6690m
-E_post:     mean=52.7097m  max=126.6890m  (linear)
-E_post_yaw: mean=53.4885m  max=125.3920m  (with yaw)
-Formula deviation: 128.34%
+E_pre:      mean=2.2730m  max=6.0853m
+E_post:     mean=41.7478m  max=156.4033m  (linear)
+E_post_yaw: mean=41.9292m  max=154.6279m  (with yaw)
+Formula deviation: 127.30%
 Velocity: 10.00m/s, Yaw rate: 0.330rad/s
 Status: FAIL (E > 0.50m)
 
 ============================================================
 Scenario: Turning | Offset: 100ms | Distance: 20m
 ============================================================
-E_pre:      mean=2.2550m  max=5.3633m
-E_post:     mean=51.3270m  max=116.3352m  (linear)
-E_post_yaw: mean=52.2081m  max=114.8635m  (with yaw)
-Formula deviation: 125.50%
+E_pre:      mean=2.1430m  max=5.7077m
+E_post:     mean=37.5219m  max=138.7318m  (linear)
+E_post_yaw: mean=38.2326m  max=137.1102m  (with yaw)
+Formula deviation: 114.30%
 Velocity: 10.00m/s, Yaw rate: 0.330rad/s
 Status: FAIL (E > 0.50m)
 
 ============================================================
 Scenario: Turning | Offset: 100ms | Distance: 40m
 ============================================================
-E_pre:      mean=2.3327m  max=4.8147m
-E_post:     mean=53.6462m  max=101.9126m  (linear)
-E_post_yaw: mean=54.8778m  max=100.2565m  (with yaw)
-Formula deviation: 133.27%
+E_pre:      mean=2.0473m  max=5.0199m
+E_post:     mean=36.4666m  max=103.4419m  (linear)
+E_post_yaw: mean=37.4714m  max=102.1269m  (with yaw)
+Formula deviation: 104.73%
 Velocity: 10.00m/s, Yaw rate: 0.330rad/s
 Status: FAIL (E > 0.50m)
 
 ============================================================
 Scenario: Turning | Offset: 150ms | Distance: 10m
 ============================================================
-E_pre:      mean=3.7747m  max=8.4407m
-E_post:     mean=52.6087m  max=127.1693m  (linear)
-E_post_yaw: mean=53.7516m  max=125.2116m  (with yaw)
-Formula deviation: 151.65%
+E_pre:      mean=3.7537m  max=9.1208m
+E_post:     mean=41.7034m  max=156.7927m  (linear)
+E_post_yaw: mean=41.9748m  max=154.1065m  (with yaw)
+Formula deviation: 150.25%
 Velocity: 10.00m/s, Yaw rate: 0.330rad/s
 Status: FAIL (E > 0.50m)
 
 ============================================================
 Scenario: Turning | Offset: 150ms | Distance: 20m
 ============================================================
-E_pre:      mean=3.7248m  max=7.9857m
-E_post:     mean=51.1799m  max=116.7959m  (linear)
-E_post_yaw: mean=52.4777m  max=114.5745m  (with yaw)
-Formula deviation: 148.32%
+E_pre:      mean=3.5358m  max=8.5581m
+E_post:     mean=37.3843m  max=139.1183m  (linear)
+E_post_yaw: mean=38.4423m  max=136.6647m  (with yaw)
+Formula deviation: 135.72%
 Velocity: 10.00m/s, Yaw rate: 0.330rad/s
 Status: FAIL (E > 0.50m)
 
 ============================================================
 Scenario: Turning | Offset: 150ms | Distance: 40m
 ============================================================
-E_pre:      mean=3.8452m  max=7.1719m
-E_post:     mean=53.4277m  max=102.2959m  (linear)
-E_post_yaw: mean=55.2546m  max=99.7930m  (with yaw)
-Formula deviation: 156.35%
+E_pre:      mean=3.3695m  max=7.5109m
+E_post:     mean=36.2021m  max=103.8195m  (linear)
+E_post_yaw: mean=37.7144m  max=101.8291m  (with yaw)
+Formula deviation: 124.63%
 Velocity: 10.00m/s, Yaw rate: 0.330rad/s
 Status: FAIL (E > 0.50m)
 
 ============================================================
 Scenario: Turning | Offset: 200ms | Distance: 10m
 ============================================================
-E_pre:      mean=4.5622m  max=9.8637m
-E_post:     mean=52.5172m  max=127.6498m  (linear)
-E_post_yaw: mean=54.0070m  max=125.0235m  (with yaw)
-Formula deviation: 128.11%
+E_pre:      mean=4.5463m  max=10.6376m
+E_post:     mean=41.6701m  max=157.1827m  (linear)
+E_post_yaw: mean=42.0301m  max=153.5705m  (with yaw)
+Formula deviation: 127.31%
 Velocity: 10.00m/s, Yaw rate: 0.330rad/s
 Status: FAIL (E > 0.50m)
 
 ============================================================
 Scenario: Turning | Offset: 200ms | Distance: 20m
 ============================================================
-E_pre:      mean=4.5057m  max=9.3318m
-E_post:     mean=51.0414m  max=117.2569m  (linear)
-E_post_yaw: mean=52.7402m  max=114.2770m  (with yaw)
-Formula deviation: 125.29%
+E_pre:      mean=4.2845m  max=9.9832m
+E_post:     mean=37.2575m  max=139.5055m  (linear)
+E_post_yaw: mean=38.6580m  max=136.2058m  (with yaw)
+Formula deviation: 114.22%
 Velocity: 10.00m/s, Yaw rate: 0.330rad/s
 Status: FAIL (E > 0.50m)
 
 ============================================================
 Scenario: Turning | Offset: 200ms | Distance: 40m
 ============================================================
-E_pre:      mean=4.6619m  max=8.3796m
-E_post:     mean=53.2165m  max=102.6803m  (linear)
-E_post_yaw: mean=55.6254m  max=99.3183m  (with yaw)
-Formula deviation: 133.09%
+E_pre:      mean=4.0903m  max=8.7557m
+E_post:     mean=35.9449m  max=104.1983m  (linear)
+E_post_yaw: mean=37.9643m  max=101.5207m  (with yaw)
+Formula deviation: 104.52%
 Velocity: 10.00m/s, Yaw rate: 0.330rad/s
 Status: FAIL (E > 0.50m)
 
@@ -505,4 +505,4 @@ Failure cases:
   - Turning, offset=200ms, distance=20m: Rẽ cua: bù tuyến tính không đủ
   - Turning, offset=200ms, distance=40m: Rẽ cua + vật thể xa: bù tuyến tính không xét góc quay
 
-End: 2026-10-05 16:55:59.747828
+End: 2026-10-05 17:34:36.903575
