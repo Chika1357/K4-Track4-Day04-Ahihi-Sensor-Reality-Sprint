@@ -1,0 +1,15 @@
+{
+  "sequence": "2011_09_26_drive_0005_sync",
+  "n_frames": 154,
+  "cam_period_ms_mean": 103.26563766579224,
+  "cam_period_ms_std": 0.11499019635061955,
+  "velo_minus_cam_ms_mean": -10.503202289729924,
+  "velo_minus_cam_ms_absmax": 10.606527328491211,
+  "velo_scan_duration_ms_mean": 103.26530252184186,
+  "frames_turn": 129,
+  "frames_straight": 3,
+  "v_max": 6.4586417841465,
+  "yaw_rate_absmax": 0.25190571797969,
+  "seed": 42,
+  "noise_sigma_m": 0.02
+}

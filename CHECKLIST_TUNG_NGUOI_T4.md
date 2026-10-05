@@ -43,14 +43,21 @@
 
 ## TV2 — Nguồn, Method và limitation
 
-- [ ] Hoàn thiện reports/sources.md; đọc phương pháp/thực nghiệm trước báo cáo chi tiết.
-- [ ] Ưu tiên nguồn ego-motion correction LiDAR/camera; Huai 2021 làm nền calibration thời gian/rolling shutter.
-- [ ] Ghi input/output, dataset/metric, giả định, limitation do tác giả nêu, version/commit/lệnh nếu xét tái hiện repo.
-- [ ] Ghi nhóm chạy mô hình giản lược, chưa tái hiện nguyên paper.
-- [ ] Kiểm tra nguồn nào ước lượng offset, nguồn nào giả định biết; không gán chung.
-- [ ] Nếu lớp yêu cầu nguồn mới theo mốc năm, kiểm tra và bổ sung; hai link khởi đầu chưa tự đáp ứng tiêu chí đó.
-- [ ] Có nguồn cho PTP/trigger trước khi TV1 dùng trên slide.
-- [ ] Phút 45 giao nguồn; phút 115 giao slide Method và báo cáo riêng.
+### Phút 15–45
+- [ ] Viết `config.yaml` đúng thông số chốt:
+  - [ ] camera 30 Hz, LiDAR 10 Hz, thời lượng 10 s
+  - [ ] offset: 0, 50, 100, 150, 200 ms
+  - [ ] kịch bản A: 20 m/s thẳng; B: từ 10 m/s, a = 3 m/s²; C: 10 m/s, R = 30 m
+  - [ ] khoảng cách vật thể: 10, 20, 40 m
+  - [ ] nhiễu σ = 0,02 m, seed = 42
+- [ ] Hàm sinh quỹ đạo ego cho A, B, C, trả về theo thời gian: `x, y, yaw, v, yaw_rate`.
+- [ ] Hàm sinh timestamp: camera và LiDAR. Quy ước: LiDAR **báo** timestamp `t_report`, nhưng **thực sự chụp** lúc `t_true = t_report − Δt`.
+- [ ] Mỗi frame LiDAR: đặt vật thể tĩnh cách xe `d` mét phía trước; đo vật thể trong hệ tọa độ xe lúc `t_true`, cộng nhiễu.
+- [ ] Fusion (cố ý sai): dùng pose xe lúc `t_report` để đổi điểm LiDAR ra hệ world.
+- [ ] Tính **E_pre** = khoảng cách giữa vị trí fusion và vị trí thật của vật thể.
+- [ ] Hàm chính, trả về DataFrame:
+  `run_simulation(scenario, offset_ms, distance_m, cfg)`
+  → cột: `frame, t_report, t_true, x_true, y_true, x_lidar, y_lidar, v, yaw_rate, e_pre`
 
 ## TV3 — Mô phỏng, src/simulate.py
 

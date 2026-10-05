@@ -25,87 +25,99 @@ import yaml
 from typing import Dict, Tuple, Optional
 
 
-def get_vehicle_state(
-    t: float,
-    scenario_cfg: dict
-) -> Tuple[float, float, float, float, float]:
-    """
-    Tính trạng thái xe tại thời gian t (x, y, yaw, v, yaw_rate)
-    
-    Kịch bản:
-      - A (Straight): Chạy thẳng đều v = 20 m/s
-      - B (Acceleration): v0 = 10 m/s, a = 3 m/s²
-      - C (Turning): v = 10 m/s, R = 30 m, yaw_rate = 10/30 = 0.3333 rad/s
-    """
-    v0 = float(scenario_cfg.get('velocity_ms', 20.0))
-    a = float(scenario_cfg.get('acceleration_ms2', 0.0))
-    turn_r = scenario_cfg.get('turn_radius_m')
-    yaw_rate = float(scenario_cfg.get('yaw_rate_rads', 0.0))
-    
-    if a != 0:
-        # Kịch bản B: Chạy thẳng tăng tốc
-        v = v0 + a * t
-        x = v0 * t + 0.5 * a * (t ** 2)
-        y = 0.0
-        yaw = 0.0
-        actual_yaw_rate = 0.0
-    elif turn_r is not None and float(turn_r) > 0:
-        # Kịch bản C: Rẽ cua tròn đều
-        r = float(turn_r)
-        actual_yaw_rate = v0 / r if yaw_rate == 0.0 else yaw_rate
-        yaw = actual_yaw_rate * t
-        # Quỹ đạo tròn tiếp tuyến với trục x tại (0,0):
-        # x(t) = R * sin(yaw), y(t) = R * (1 - cos(yaw))
-        x = r * np.sin(yaw)
-        y = r * (1.0 - np.cos(yaw))
-        v = v0
-    else:
-        # Kịch bản A: Thẳng đều
-        v = v0
-        x = v0 * t
-        y = 0.0
-        yaw = 0.0
-        actual_yaw_rate = 0.0
-        
-    return x, y, yaw, v, actual_yaw_rate
+@dataclass
+class SimulationConfig:
+    """Cấu hình mô phỏng"""
+    duration_sec: float
+    velocity_ms: float
+    acceleration_ms2: float
+    turn_radius_m: float = None
+    yaw_rate_rads: float = 0.0
+    camera_freq_hz: int = 30
+    lidar_freq_hz: int = 10
+    object_distance_m: float = 10.0
+    lidar_noise_sigma_m: float = 0.02
+    random_seed: int = 42
 
 
-def run_simulation(
-    scenario_key: str,
-    offset_ms: float,
-    distance_m: float,
-    cfg: dict
-) -> pd.DataFrame:
-    """
-    Hàm mô phỏng chính theo chuẩn Checklist TV3:
-      run_simulation(scenario, offset_ms, distance_m, cfg)
-      
-    Returns:
-        pd.DataFrame với các cột:
-        frame, t_report, t_true, x_true, y_true, x_lidar, y_lidar, v, yaw_rate, e_pre
-    """
-    scenarios = cfg['scenarios']
-    scen_cfg = scenarios[scenario_key]
+class ObjectTrajectorySimulator:
+    """Mô phỏng quỹ đạo xe và vị trí vật thể"""
     
-    duration = float(scen_cfg.get('duration_sec', 10.0))
-    lidar_freq = int(cfg.get('lidar_freq_hz', 10))
-    sigma = float(cfg.get('lidar_noise_sigma_m', 0.02))
-    seed = int(cfg.get('random_seed', 42))
+    def __init__(self, config: SimulationConfig):
+        self.config = config
+        np.random.seed(config.random_seed)
+        self.rng = np.random.RandomState(config.random_seed)
     
-    # Thiết lập seed để kết quả tái lập tuyệt đối
-    rng = np.random.RandomState(seed + int(offset_ms) + int(distance_m))
-    
-    dt_lidar = 1.0 / lidar_freq
-    t_reports = np.arange(0.0, duration, dt_lidar)
-    offset_s = offset_ms / 1000.0
-    
-    records = []
-    
-    for frame_idx, t_rep in enumerate(t_reports):
-        t_true = t_rep - offset_s
+    def get_vehicle_state(self, t: float) -> Tuple[float, float, float, float]:
+        """
+        Lấy vị trí và hướng xe tại thời gian t
         
-        # 1. Trạng thái xe tại thời điểm thực tế t_true (khi sensor LiDAR quét điểm)
-        x_veh_true, y_veh_true, yaw_true, v_true, yaw_rate_true = get_vehicle_state(t_true, scen_cfg)
+        Returns:
+            (x, y, yaw, v) - vị trí xe (m), hướng (rad), vận tốc (m/s)
+        """
+        # Vị trí xe dọc trục x (chuyển động thuận)
+        if self.config.acceleration_ms2 != 0:
+            # Tăng tốc: x = v0*t + 0.5*a*t²
+            x = self.config.velocity_ms * t + 0.5 * self.config.acceleration_ms2 * t**2
+            v = self.config.velocity_ms + self.config.acceleration_ms2 * t
+        else:
+            # Chuyển động đều
+            x = self.config.velocity_ms * t
+            v = self.config.velocity_ms
+        
+        # Góc quay (yaw)
+        yaw = self.config.yaw_rate_rads * t
+        
+        # Vị trí y (0 nếu chạy thẳng)
+        if self.config.turn_radius_m is not None and self.config.turn_radius_m > 0:
+            # Quỹ đạo tròn: y = R * (1 - cos(yaw))
+            y = self.config.turn_radius_m * (1 - np.cos(yaw))
+        else:
+            y = 0.0
+        
+        return x, y, yaw, v
+    
+    def get_object_position_camera_frame(self, t: float) -> Tuple[float, float]:
+        """
+        Vị trí vật thể trong hệ tọa độ camera (xe)
+        Vật thể tĩnh trong hệ tọa độ tuyệt đối ở vị trí (object_distance_m, 0)
+        
+        Returns:
+            (obj_x, obj_y) - tọa độ vật thể so với xe ở thời gian t
+        """
+        # Vị trí vật thể tĩnh trong hệ tọa độ tuyệt đối
+        obj_abs_x = self.config.object_distance_m
+        obj_abs_y = 0.0
+        
+        # Vị trí xe
+        xe_x, xe_y, yaw, _ = self.get_vehicle_state(t)
+        
+        # Chuyển vị trí vật thể từ hệ tọa độ tuyệt đối sang hệ tọa độ xe
+        # Bước 1: Dịch xe về gốc
+        dx = obj_abs_x - xe_x
+        dy = obj_abs_y - xe_y
+        
+        # Bước 2: Quay ngược góc xe để đưa vào hệ xe (rotate by -yaw)
+        cos_yaw = np.cos(-yaw)
+        sin_yaw = np.sin(-yaw)
+        obj_x = dx * cos_yaw - dy * sin_yaw
+        obj_y = -dx * sin_yaw + dy * cos_yaw
+        
+        return obj_x, obj_y
+    
+    def simulate(self) -> Dict:
+        """
+        Chạy mô phỏng và trả về timestamp + vị trí
+        
+        Returns:
+            dict với keys: camera_times, lidar_times, camera_obj_pos, lidar_obj_pos_noisy
+        """
+        # Tạo timestamp
+        camera_dt = 1.0 / self.config.camera_freq_hz
+        lidar_dt = 1.0 / self.config.lidar_freq_hz
+        
+        camera_times = np.arange(0, self.config.duration_sec, camera_dt)
+        lidar_times = np.arange(0, self.config.duration_sec, lidar_dt)
         
         # 2. Vật thể tĩnh nằm cách xe distance_m mét thẳng phía trước theo hướng xe lúc t_true
         x_obj_true = x_veh_true + distance_m * np.cos(yaw_true)
