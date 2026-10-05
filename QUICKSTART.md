@@ -1,86 +1,40 @@
-# Quick Start Guide - CHỐT LAB T4
+# Quickstart T4 — phân biệt code hiện tại và thiết kế mục tiêu
 
-## ⚡ Chạy nhanh (5 phút)
+## 1. Cài dependencies
 
-### 1. Cài dependencies
-```bash
-pip install -r requirements.txt
-```
+~~~powershell
+python -m pip install -r requirements.txt
+~~~
 
-### 2. Chạy benchmark đầu tiên
-```bash
+## 2. Kiểm tra lại phiên bản cũ
+
+Các lệnh này chạy với schema cũ trong config.yaml:
+
+~~~powershell
 python src/run_benchmark.py config.yaml
-```
-
-### 3. Vẽ biểu đồ
-```bash
 python src/plot.py results/results.csv plots/
-```
+~~~
 
-### 4. Xem kết quả
-```bash
-cat results/results.csv          # Bảng dữ liệu
-cat results/benchmark.log        # Log chi tiết
-ls plots/                        # Biểu đồ
-```
+Runner ghi đè results/results.csv và results/benchmark.log; chỉ chạy trong bản sao kiểm tra nếu cần giữ bằng chứng cũ. CSV/plot phiên bản này có lỗi toán và ghép thời điểm, chưa dùng để báo cáo failure sensor. Xem [review](reports/CODE_REVIEW_T4.md).
 
----
+Runner hiện tại nhận đường dẫn config dạng positional; chưa hỗ trợ --config, --scenarios hoặc chạy dạng module theo thiết kế mục tiêu.
 
-## 📚 Cấu trúc code
+## 3. Giao diện mục tiêu sau khi TV3/TV4/TV5 sửa
 
-| File | Chuyên môn | Nhiệm vụ |
-|------|-----------|---------|
-| `simulate.py` | TV3 | Mô phỏng quỹ đạo xe, vị trí vật thể, timestamp camera/LiDAR, tính E_pre |
-| `compensate.py` | TV4 | Bù chuyển động (tuyến tính + yaw), tính E_post, phân tích failure |
-| `run_benchmark.py` | TV5 | Loop qua tất cả thí nghiệm, ghi CSV + log |
-| `plot.py` | TV5 | Vẽ 3 plot: error vs offset, comparison, heatmap |
+~~~powershell
+python -m src.run_benchmark --config config_chot.yaml --scenarios A C
+python -m src.run_benchmark --config config_chot.yaml
+~~~
 
----
+Hai lệnh trên là yêu cầu cần hiện thực, chưa phải hướng dẫn chạy thành công cho code hiện tại. A/C là phần ưu tiên, B là mở rộng.
 
-## 🔧 Tuỳ chỉnh thông số
+## 4. Nghiệm thu trước khi dùng số đo
 
-Mở `config.yaml` và sửa:
+- Cùng 100 mẫu, ground truth và noise giữa offset/phương án.
+- Offset 0: ba phương án trùng nhau, sai số gần mức nhiễu.
+- Thẳng 20 m/s, 100 ms: trước bù gần 2 m, sau bù gần noise.
+- Rẽ: đúng quỹ đạo tròn, CTRV dùng tịnh tiến và quay.
+- Có samples.csv, bảng tổng hợp, config_used.yaml, log phiên bản/commit và plot ba phương án.
+- Formula deviation tại offset 0 là N/A; ngưỡng 0,5 m do nhóm đặt.
 
-```yaml
-offsets_ms: [0, 50, 100, 150, 200]  # Offset LiDAR (ms)
-scenarios:
-  scenario_a_straight:
-    velocity_ms: 20                 # Tốc độ (m/s)
-object_distances_m: [10, 20, 40]    # Khoảng cách vật thể (m)
-```
-
----
-
-## 📊 Đọc kết quả
-
-**results.csv** có các cột:
-- `e_pre_mean`: Sai số trước bù
-- `e_post_mean`: Sai số sau bù (tuyến tính)
-- `e_post_yaw_mean`: Sai số sau bù (có xét yaw)
-- `is_failure`: True nếu E_post > 0.5m
-
-**Failure cases** được ghi rõ trong `benchmark.log`
-
----
-
-## ✅ Checklist
-
-- [ ] Cài dependencies
-- [ ] Chạy benchmark lần đầu
-- [ ] Xem kết quả CSV
-- [ ] Vẽ biểu đồ
-- [ ] Xác nhận failure case (scenario C, distance 40m)
-- [ ] Điều chỉnh config nếu cần
-- [ ] Ghi log để báo cáo
-
----
-
-## ❓ Thắc mắc?
-
-- **E_pre > v×Δt?** Có thể do quỹ đạo cong hoặc tăng tốc
-- **E_post vẫn lớn ở scenario C?** Bù tuyến tính không xét yaw, cần dùng E_post_yaw
-- **Sai số lớn ở vật thể 40m?** Bù góc quay rất quan trọng khi object xa
-
----
-
-**Good luck! 🚀**
+Checklist đầy đủ: [việc TV1 và nghiệm thu](reports/TV1_HANDOFF.md).

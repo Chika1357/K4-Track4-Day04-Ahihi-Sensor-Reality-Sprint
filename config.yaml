@@ -1,4 +1,6 @@
-# Thông số chốt cho CHỌT LAB T4
+# Cấu hình phiên bản cũ, giữ để truy vết/chạy kiểm tra lại.
+# Kết quả cũ chưa đủ điều kiện báo cáo: xem reports/CODE_REVIEW_T4.md.
+# Cấu hình mục tiêu theo thiết kế mới: config_chot.yaml.
 
 # 1. Offset LiDAR (ms) - áp dụng vào timestamp
 offsets_ms:
@@ -57,4 +59,4 @@ plots_dir: "./plots"
 reports_dir: "./reports"
 
 # 7. Ngưỡng sai lệch
-threshold_m: 0.5  # Ngưỡng E > 0.5m = nguy hiểm
+threshold_m: 0.5  # Ngưỡng minh họa do nhóm đặt, chưa phải tiêu chuẩn an toàn
