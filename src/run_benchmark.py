@@ -1,219 +1,198 @@
 """
-run_benchmark.py - TV5: Chạy toàn bộ benchmark, tạo bảng kết quả, log
+run_benchmark.py - TV5: Chạy ma trận benchmark thực nghiệm Lab T4
 
-Nhiệm vụ:
-  - Loop qua tất cả thí nghiệm (scenario × offset × distance)
-  - Gọi simulate.py, compensate.py
-  - Ghi kết quả vào results.csv
-  - Ghi log chi tiết
+Thực hiện:
+  - 3 kịch bản x 5 mức offset x 3 khoảng cách = 45 tổ hợp
+  - Gọi simulate.py (TV3) và compensate.py (TV4)
+  - Ghi bảng kết quả chuẩn vào results/results.csv
+  - Ghi log chi tiết vào results/benchmark.log
 """
 
 import sys
-import io
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
-import yaml
+if hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
+import os
+import argparse
+from datetime import datetime
 import numpy as np
 import pandas as pd
-import os
-from datetime import datetime
-from simulate import SimulationConfig, ObjectTrajectorySimulator, compute_error_pre
+import yaml
+
+from simulate import run_simulation, get_vehicle_state
 from compensate import (
-    compensate_linear_motion,
-    compensate_with_yaw,
-    compute_error_post,
+    compensate_linear,
+    compensate_ctrv,
     compute_formula_deviation,
     analyze_failure_case
 )
 
 
-def run_benchmark(config_path: str):
-    """Chạy toàn bộ benchmark"""
-    
-    # Load config
-    with open(config_path, 'r', encoding='utf-8') as f:
-        config_dict = yaml.safe_load(f)
-    
-    # Tạo thư mục output
-    results_dir = config_dict.get('results_dir', './results')
-    plots_dir = config_dict.get('plots_dir', './plots')
+def run_benchmark(config_path: str = "config.yaml"):
+    with open(config_path, "r", encoding="utf-8") as f:
+        cfg = yaml.safe_load(f)
+
+    results_dir = cfg.get("results_dir", "./results")
+    plots_dir = cfg.get("plots_dir", "./plots")
     os.makedirs(results_dir, exist_ok=True)
     os.makedirs(plots_dir, exist_ok=True)
-    
-    # Khởi tạo log
-    log_file = os.path.join(results_dir, 'benchmark.log')
-    csv_file = os.path.join(results_dir, 'results.csv')
-    
-    all_results = []
+
+    csv_path = os.path.join(results_dir, "results.csv")
+    log_path = os.path.join(results_dir, "benchmark.log")
+
+    scenarios = cfg["scenarios"]
+    offsets_ms = cfg["offsets_ms"]
+    distances_m = cfg["object_distances_m"]
+    threshold_m = float(cfg.get("threshold_m", 0.5))
+
+    results = []
     failure_cases = []
-    
-    with open(log_file, 'w', encoding='utf-8') as log:
-        log.write(f"=== CHỐT LAB T4 Benchmark ===\n")
-        log.write(f"Start: {datetime.now()}\n")
-        log.write(f"Config: {config_path}\n\n")
-        
-        # Lấy thông số
-        offsets_ms = config_dict['offsets_ms']
-        object_distances_m = config_dict['object_distances_m']
-        scenarios = config_dict['scenarios']
-        threshold_m = config_dict.get('threshold_m', 0.5)
-        
-        # Duyệt qua tất cả kịch bản
-        for scenario_key, scenario_cfg in scenarios.items():
-            scenario_name = scenario_cfg['name']
-            
-            # Duyệt qua offset
+
+    with open(log_path, "w", encoding="utf-8") as log:
+        log.write("=" * 70 + "\n")
+        log.write(f"CHỐT LAB T4 BENCHMARK RUN LOG\n")
+        log.write(f"Thời gian: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        log.write(f"Config: {config_path}\n")
+        log.write(f"Ngưỡng nguy hiểm: {threshold_m} m\n")
+        log.write("=" * 70 + "\n\n")
+
+        for scen_key, scen_cfg in scenarios.items():
+            scen_name = scen_cfg.get("name", scen_key)
+            log.write(f"\n{'#'*60}\n")
+            log.write(f"Kịch bản: {scen_name} ({scen_key})\n")
+            log.write(f"{'#'*60}\n")
+
             for offset_ms in offsets_ms:
-                # Duyệt qua khoảng cách
-                for distance_m in object_distances_m:
-                    log.write(f"\n{'='*60}\n")
-                    log.write(f"Scenario: {scenario_name} | Offset: {offset_ms}ms | Distance: {distance_m}m\n")
-                    log.write(f"{'='*60}\n")
-                    
-                    # Tạo config mô phỏng
-                    sim_config = SimulationConfig(
-                        duration_sec=scenario_cfg['duration_sec'],
-                        velocity_ms=scenario_cfg['velocity_ms'],
-                        acceleration_ms2=scenario_cfg['acceleration_ms2'],
-                        turn_radius_m=scenario_cfg.get('turn_radius_m'),
-                        yaw_rate_rads=scenario_cfg['yaw_rate_rads'],
-                        camera_freq_hz=config_dict['camera_freq_hz'],
-                        lidar_freq_hz=config_dict['lidar_freq_hz'],
-                        object_distance_m=distance_m,
-                        lidar_noise_sigma_m=config_dict['lidar_noise_sigma_m'],
-                        random_seed=config_dict['random_seed'],
+                offset_s = offset_ms / 1000.0
+
+                for dist_m in distances_m:
+                    # 1. Chạy mô phỏng TV3
+                    df_sim = run_simulation(scen_key, offset_ms, dist_m, cfg)
+
+                    pts_lidar = df_sim[['x_lidar', 'y_lidar']].values
+                    v_arr = df_sim['v'].values
+                    yaw_rate_arr = df_sim['yaw_rate'].values
+                    v_mean = float(np.mean(v_arr))
+                    yaw_rate_mean = float(np.mean(yaw_rate_arr))
+
+                    # 2. Bù chuyển động TV4
+                    # Bù tuyến tính từng frame
+                    pts_lin_comp = []
+                    pts_ctrv_comp = []
+                    for i in range(len(df_sim)):
+                        p_l = pts_lidar[i]
+                        v_i = v_arr[i]
+                        yr_i = yaw_rate_arr[i]
+                        p_lin = compensate_linear(p_l, v_i, offset_s)
+                        p_ctrv = compensate_ctrv(p_l, v_i, yr_i, offset_s)
+                        pts_lin_comp.append(p_lin)
+                        pts_ctrv_comp.append(p_ctrv)
+
+                    pts_lin_comp = np.array(pts_lin_comp)
+                    pts_ctrv_comp = np.array(pts_ctrv_comp)
+
+                    # 3. Chiếu ra hệ world dùng pose tại t_report
+                    e_post_list = []
+                    e_post_ctrv_list = []
+
+                    for i in range(len(df_sim)):
+                        t_rep = df_sim['t_report'].iloc[i]
+                        x_rep, y_rep, yaw_rep, _, _ = get_vehicle_state(t_rep, scen_cfg)
+                        cos_rep = np.cos(yaw_rep)
+                        sin_rep = np.sin(yaw_rep)
+
+                        # Vị trí thật
+                        x_true = df_sim['x_true'].iloc[i]
+                        y_true = df_sim['y_true'].iloc[i]
+
+                        # Vị trí sau bù tuyến tính
+                        x_lin_w = x_rep + (pts_lin_comp[i, 0] * cos_rep - pts_lin_comp[i, 1] * sin_rep)
+                        y_lin_w = y_rep + (pts_lin_comp[i, 0] * sin_rep + pts_lin_comp[i, 1] * cos_rep)
+                        e_lin = np.sqrt((x_lin_w - x_true)**2 + (y_lin_w - y_true)**2)
+                        e_post_list.append(e_lin)
+
+                        # Vị trí sau bù CTRV
+                        x_ctrv_w = x_rep + (pts_ctrv_comp[i, 0] * cos_rep - pts_ctrv_comp[i, 1] * sin_rep)
+                        y_ctrv_w = y_rep + (pts_ctrv_comp[i, 0] * sin_rep + pts_ctrv_comp[i, 1] * cos_rep)
+                        e_ctrv = np.sqrt((x_ctrv_w - x_true)**2 + (y_ctrv_w - y_true)**2)
+                        e_post_ctrv_list.append(e_ctrv)
+
+                    e_pre_mean = float(df_sim['e_pre'].mean())
+                    e_pre_max = float(df_sim['e_pre'].max())
+                    e_post_mean = float(np.mean(e_post_list))
+                    e_post_max = float(np.max(e_post_list))
+                    e_post_ctrv_mean = float(np.mean(e_post_ctrv_list))
+
+                    vdt_m = v_mean * offset_s
+                    formula_dev_pct = float(compute_formula_deviation(e_pre_mean, v_mean, offset_s))
+                    over_thresh = bool(e_post_mean > threshold_m)
+
+                    # Phân tích Failure case TV4
+                    fc = analyze_failure_case(
+                        scen_name, dist_m, offset_ms,
+                        e_pre_mean, e_post_mean, e_post_ctrv_mean,
+                        threshold_m
                     )
-                    
-                    # Chạy mô phỏng
-                    simulator = ObjectTrajectorySimulator(sim_config)
-                    sim_result = simulator.simulate()
-                    
-                    # Tính E_pre
-                    errors_pre, mean_e_pre, max_e_pre = compute_error_pre(
-                        sim_result['camera_times'],
-                        sim_result['camera_obj_pos'],
-                        sim_result['lidar_times'],
-                        sim_result['lidar_obj_pos_noisy'],
-                        offset_ms
+                    if fc['is_failure']:
+                        failure_cases.append(fc)
+
+                    log_entry = (
+                        f"Offset={offset_ms:3d}ms | d={dist_m:2d}m | v={v_mean:.1f}m/s: "
+                        f"E_pre={e_pre_mean:.3f}m, E_post={e_post_mean:.3f}m, "
+                        f"E_ctrv={e_post_ctrv_mean:.3f}m, v*dt={vdt_m:.3f}m, "
+                        f"Dev={formula_dev_pct:5.1f}% | "
+                        f"{'FAIL (>0.5m)' if over_thresh else 'PASS'}\n"
                     )
-                    
-                    # Lấy vận tốc hiện tại (có thể thay đổi do tăng tốc)
-                    # Lấy vận tốc ở giữa test
-                    t_mid = sim_config.duration_sec / 2
-                    if sim_config.acceleration_ms2 != 0:
-                        velocity_avg = sim_config.velocity_ms + sim_config.acceleration_ms2 * t_mid
-                    else:
-                        velocity_avg = sim_config.velocity_ms
-                    
-                    # Tính công thức deviation
-                    formula_dev = compute_formula_deviation(mean_e_pre, velocity_avg, offset_ms)
-                    
-                    # Bù tuyến tính
-                    offset_s = offset_ms / 1000.0
-                    lidar_pos_linear = compensate_linear_motion(
-                        sim_result['lidar_obj_pos_noisy'],
-                        velocity_avg,
-                        offset_s
-                    )
-                    
-                    # Align về cùng chiều dài với camera
-                    n_camera = len(sim_result['camera_times'])
-                    n_lidar = len(sim_result['lidar_times'])
-                    min_len = min(n_camera, n_lidar)
-                    
-                    camera_pos_aligned = sim_result['camera_obj_pos'][:min_len]
-                    lidar_pos_aligned = lidar_pos_linear[:min_len]
-                    
-                    # Tính E_post (tuyến tính)
-                    errors_post, mean_e_post, max_e_post = compute_error_post(
-                        camera_pos_aligned,
-                        lidar_pos_aligned
-                    )
-                    
-                    # Bù có yaw
-                    lidar_pos_yaw = compensate_with_yaw(
-                        sim_result['lidar_obj_pos_noisy'],
-                        velocity_avg,
-                        scenario_cfg['yaw_rate_rads'],
-                        offset_s
-                    )
-                    lidar_pos_yaw_aligned = lidar_pos_yaw[:min_len]
-                    errors_post_yaw, mean_e_post_yaw, max_e_post_yaw = compute_error_post(
-                        camera_pos_aligned,
-                        lidar_pos_yaw_aligned
-                    )
-                    
-                    # Phân tích failure
-                    failure_info = analyze_failure_case(
-                        scenario_name, distance_m, mean_e_post, threshold_m
-                    )
-                    
-                    # Ghi log
-                    log_msg = (
-                        f"E_pre:      mean={mean_e_pre:.4f}m  max={max_e_pre:.4f}m\n"
-                        f"E_post:     mean={mean_e_post:.4f}m  max={max_e_post:.4f}m  (linear)\n"
-                        f"E_post_yaw: mean={mean_e_post_yaw:.4f}m  max={max_e_post_yaw:.4f}m  (with yaw)\n"
-                        f"Formula deviation: {formula_dev:.2f}%\n"
-                        f"Velocity: {velocity_avg:.2f}m/s, Yaw rate: {scenario_cfg['yaw_rate_rads']:.3f}rad/s\n"
-                        f"Status: {'FAIL (E > {:.2f}m)'.format(threshold_m) if failure_info['is_failure'] else 'PASS'}\n"
-                    )
-                    log.write(log_msg)
-                    
-                    # Thêm vào danh sách kết quả
-                    result_row = {
-                        'scenario': scenario_name,
-                        'offset_ms': offset_ms,
-                        'distance_m': distance_m,
-                        'velocity_ms': velocity_avg,
-                        'yaw_rate_rads': scenario_cfg['yaw_rate_rads'],
-                        'e_pre_mean': mean_e_pre,
-                        'e_pre_max': max_e_pre,
-                        'e_post_mean': mean_e_post,
-                        'e_post_max': max_e_post,
-                        'e_post_yaw_mean': mean_e_post_yaw,
-                        'e_post_yaw_max': max_e_post_yaw,
-                        'formula_deviation_pct': formula_dev,
-                        'is_failure': failure_info['is_failure'],
-                        'failure_reason': failure_info['reason'],
-                    }
-                    all_results.append(result_row)
-                    
-                    if failure_info['is_failure']:
-                        failure_cases.append(result_row)
-        
-        # Ghi log tóm tắt
-        log.write(f"\n\n=== SUMMARY ===\n")
-        log.write(f"Total experiments: {len(all_results)}\n")
-        log.write(f"Failures: {len(failure_cases)}\n")
-        
-        if failure_cases:
-            log.write(f"\nFailure cases:\n")
-            for fc in failure_cases:
-                log.write(
-                    f"  - {fc['scenario']}, offset={fc['offset_ms']}ms, "
-                    f"distance={fc['distance_m']}m: {fc['failure_reason']}\n"
-                )
-        
-        log.write(f"\nEnd: {datetime.now()}\n")
-    
-    # Lưu CSV
-    df = pd.DataFrame(all_results)
-    df.to_csv(csv_file, index=False)
-    
-    print(f"✓ Benchmark complete!")
-    print(f"  Results: {csv_file}")
-    print(f"  Log: {log_file}")
-    print(f"  Total: {len(all_results)} experiments, {len(failure_cases)} failures")
-    
-    return df, failure_cases
+                    log.write(log_entry)
+
+                    # Lưu theo đúng cấu trúc cột Checklist
+                    results.append({
+                        'scenario': scen_name,
+                        'offset_ms': int(offset_ms),
+                        'distance_m': int(dist_m),
+                        'v_mps': round(v_mean, 2),
+                        'e_pre_mean': round(e_pre_mean, 4),
+                        'e_pre_max': round(e_pre_max, 4),
+                        'e_post_mean': round(e_post_mean, 4),
+                        'e_post_max': round(e_post_max, 4),
+                        'e_post_ctrv_mean': round(e_post_ctrv_mean, 4),
+                        'vdt_m': round(vdt_m, 4),
+                        'formula_dev_pct': round(formula_dev_pct, 2),
+                        'over_threshold': over_thresh
+                    })
+
+        # Ghi tóm tắt Failure cases vào log
+        log.write("\n" + "=" * 70 + "\n")
+        log.write("TỔNG KẾT FAILURE CASES (E_post > 0.5m)\n")
+        log.write("=" * 70 + "\n")
+        for f in failure_cases:
+            log.write(
+                f"- [{f['scenario']}] offset={f['offset_ms']}ms, d={f['distance_m']}m: "
+                f"E_post={f['e_post']:.3f}m, E_ctrv={f['e_post_ctrv']:.3f}m\n"
+                f"  Lý do: {f['reason']}\n"
+            )
+
+    df_results = pd.DataFrame(results)
+    df_results.to_csv(csv_path, index=False, encoding="utf-8")
+    print(f"[OK] Đã hoàn thành benchmark: 45/45 tổ hợp.")
+    print(f"[OK] File kết quả: {csv_path}")
+    print(f"[OK] File log: {log_path}")
+    print(f"[OK] Số trường hợp vượt ngưỡng 0.5m: {len(failure_cases)} / 45")
+
+    return df_results, failure_cases
 
 
 if __name__ == "__main__":
-    import sys
-    
-    config_path = sys.argv[1] if len(sys.argv) > 1 else "config.yaml"
-    df, failures = run_benchmark(config_path)
-    
-    print("\nFirst 10 rows:")
-    print(df.head(10))
+    parser = argparse.ArgumentParser(description="Chạy benchmark mô phỏng Lab T4")
+    parser.add_argument("--config", "-c", type=str, default="config.yaml", help="Đường dẫn file config.yaml")
+    # Cho phép truyền positional argument nếu có
+    parser.add_argument("pos_config", nargs="?", default=None, help="Đường dẫn file config (positional)")
+    args = parser.parse_args()
+
+    cfg_file = args.pos_config if args.pos_config else args.config
+    run_benchmark(cfg_file)

@@ -2,9 +2,13 @@
 
 Điền thông tin thật trước bàn giao; nhóm có đúng 5 người.
 
-- Tên nhóm: Chưa điền
-- URL repository: https://github.com/Chika1357/K4-Track4-Day4-Ahihi
-- Nhánh tích hợp: main; TV1 ghép thay đổi đã kiểm tra từ các nhánh thành viên. Tài liệu TV1 đang chuẩn bị trên thanh_dev.
+| Vị trí | Họ tên | MSSV | Chuyên môn |
+|--------|--------|------|-----------|
+| TV1 (Đội trưởng) | [Tên người 1] | [MSSV] | Repo, README, Trade-off |
+| TV2 | [Tên người 2] | [MSSV] | Đọc nguồn, Method |
+| TV3 | Phạm Hoàng Anh Khôi | 2A202602404 | Mô phỏng, Simulate |
+| TV4 | Bùi Đăng Khoa | 2A202602617 | Bù chuyển động, Failure case |
+| TV5 | [Tên người 5] | [MSSV] | Benchmark, Plot, Results |
 
 | Vai trò | Họ tên | MSSV | Nhánh làm việc | Trách nhiệm |
 |---|---|---|---|---|
