@@ -1,110 +1,192 @@
-# 📌 CHỐT LAB T4: Lệch thời gian camera–LiDAR tạo sai số vị trí bao nhiêu?
+# CHỐT LAB T4 — Sai số căn chỉnh vị trí do lệch timestamp
 
-## 1. Bài toán (đã chốt, không đổi)
+Thiết kế này là mục tiêu triển khai tiếp theo. Main đã có benchmark phiên bản cũ, nhưng kết quả hiện tại có lỗi ghép thời điểm và bù chuyển động nên chưa dùng để kết luận về sensor. Xem reports/CODE_REVIEW_T4.md; dự đoán lý thuyết không phải số đã đo. TV1 quản lý thay đổi và cập nhật đồng thời tài liệu/cấu hình trước khi chạy lại.
 
-- **Nền tảng:** xe ADAS.
-- **Tính năng:** fusion camera–LiDAR để định vị vật thể phía trước.
-- **Sensor:** camera 30 Hz, LiDAR 10 Hz.
-- **Failure case:** timestamp LiDAR lệch so với camera trong khi xe đang chạy, nên điểm LiDAR chiếu lên ảnh bị lệch khỏi vị trí thật của vật thể.
-- **Dữ liệu:** mô phỏng 2D bằng Python (numpy, matplotlib). Ghi rõ trong báo cáo là **dữ liệu tổng hợp**.
+## 1. Problem và phạm vi
 
-## 2. Claim (giả thuyết để thử, chưa phải kết luận)
+- Nền tảng ADAS; ứng dụng liên quan là căn chỉnh vị trí camera–LiDAR.
+- Mô phỏng vị trí vật thể đứng yên trong world khi ego chuyển động, bằng Python và dữ liệu tổng hợp 2D.
+- Camera là mốc thời gian tham chiếu; LiDAR cung cấp phép đo cũ nhưng gắn timestamp mới.
+- Chưa chạy ảnh, point cloud, bbox, detector/tracker hay phép chiếu pixel. Sai số vị trí theo mét chưa chứng minh chất lượng toàn pipeline fusion.
+- Camera 30 Hz và LiDAR 10 Hz dùng minh họa timeline. Phép thử chính đánh giá tại mốc LiDAR báo, cũng thuộc lưới camera đồng pha; không thêm lỗi nearest-frame, queue latency hay rolling shutter.
 
-> Khi offset tăng từ 0 lên 200 ms, sai số vị trí tăng gần tuyến tính theo `v × Δt` (20 m/s, 100 ms thì khoảng 2 m). Bù chuyển động tuyến tính giảm sai số rõ khi xe chạy thẳng, nhưng **còn sai số đáng kể khi xe rẽ cua**, vì góc quay làm vật thể ở xa bị lệch thêm khoảng `d × ω × Δt`.
+## 2. Claim trước khi chạy
 
-## 3. Thông số benchmark
+> Khi chạy thẳng đều, sai số trước bù tăng xấp xỉ v × Δt. Bù tịnh tiến dự kiến giảm sai số về gần mức nhiễu. Khi rẽ, bù tịnh tiến còn sai số do bỏ qua quay; bù tịnh tiến + quay dự kiến giảm sai số đó. Với gia tốc, giả định vận tốc không đổi có thể để lại sai số.
 
-| Hạng mục | Giá trị chốt |
+v × Δt là mô hình kiểm tra cho chuyển động thẳng đều. d × |ω| × Δt là xấp xỉ thành phần quay ở góc nhỏ; không cộng vô hướng hai đại lượng này để gọi là sai số tổng chính xác.
+
+## 3. Dữ liệu và đối chứng
+
+| Tham số | Giá trị |
 |---|---|
-| Offset (áp lên timestamp LiDAR) | 0 (baseline), 50, 100, 150, 200 ms |
-| Kịch bản A: chạy thẳng đều | 20 m/s |
-| Kịch bản B: tăng tốc | từ 10 m/s, gia tốc 3 m/s² |
-| Kịch bản C: rẽ cua | 10 m/s, bán kính 30 m (yaw rate ≈ 0,33 rad/s) |
-| Vật thể tĩnh phía trước | cách xe 10, 20, 40 m |
-| Nhiễu đo LiDAR | σ = 0,02 m, seed = 42 |
-| Thời lượng mỗi lần chạy | 10 giây |
+| Offset dương Δt | 0, 50, 100, 150, 200 ms |
+| A — chạy thẳng đều | v = 20 m/s, yaw = 0 |
+| B — tăng tốc thẳng | v0 = 10 m/s, a = 3 m/s², yaw = 0 |
+| C — rẽ đều | v = 10 m/s, bán kính 30 m, ω = v/R = 1/3 rad/s |
+| Khoảng cách tại mốc tham chiếu | d = 10, 20, 40 m, phía trước ego |
+| Số mẫu mỗi tổ hợp | 100 mẫu, cách nhau 0,1 s |
+| Mốc tham chiếu | t_ref[i] = 0,2 + i/10 s, i = 0..99 |
+| Nhiễu vị trí LiDAR | Gauss độc lập hai trục, σ = 0,02 m mỗi trục |
+| Seed gốc | 42 |
 
-Tổng cộng: 3 kịch bản × 5 offset × 3 khoảng cách, mỗi tổ hợp đo trước bù và sau bù.
+Mỗi mẫu là một phép thử độc lập: đặt một vật thể đứng yên trong world ở phía trước ego tại t_ref, rồi tính phép đo của chính vật thể đó tại t_true. Các mẫu liên tiếp có thể dùng vật thể khác nhau. Không mô tả chúng là một vật thể cố định xuyên suốt 10 giây.
 
-## 4. Metric (định nghĩa trước khi chạy, không đổi giữa các điều kiện)
+Giữ cùng mốc, quỹ đạo, vật thể và mẫu nhiễu khi so các offset/phương án. scenario_id: A=0, B=1, C=2; distance_id: 10=0, 20=1, 40=2. Seed tổ hợp = 42 + 100*scenario_id + distance_id; không cộng offset vào seed. Dùng numpy.random.default_rng(seed) sinh mảng nhiễu (100, 2) theo cùng thứ tự.
 
-- **E_pre (m):** khoảng cách giữa vị trí vật thể theo LiDAR (bị lệch thời gian) và vị trí thật ở thời điểm camera. Báo cáo cả **mean** và **max**.
-- **E_post (m):** giống E_pre nhưng sau khi bù chuyển động tuyến tính (giả định vận tốc không đổi, không xét yaw).
-- **Sai lệch so với công thức (%)** = |E_pre − v×Δt| / (v×Δt) × 100. Cho biết khi nào công thức `v × Δt` không còn đúng.
-- **Chiều tốt/xấu:** cả ba càng nhỏ càng tốt.
-- **Metric này đo gì:** chất lượng căn chỉnh dữ liệu đầu vào của fusion. Nó **chưa** chứng minh detector hay tracker giảm bao nhiêu phần trăm độ chính xác.
+Mốc đầu 0,2 s bảo đảm t_true >= 0 với offset tối đa. 100 mẫu thuộc cửa sổ dài 10 s, mẫu cuối ở 10,1 s. Quỹ đạo hỗ trợ toàn bộ thời điểm này.
 
-## 5. Ngưỡng đáng lo (nhóm tự đặt)
+Ma trận đầy đủ: 3 kịch bản × 5 offset × 3 khoảng cách = 45 tổ hợp, mỗi tổ hợp so ba phương án. Ưu tiên hoàn tất A và C (30 tổ hợp). B là mở rộng nếu còn thời gian; báo cáo ghi đúng phần đã chạy.
 
-**E > 0,5 m** được coi là nguy hiểm, vì sai lệch cỡ này đủ để gán nhầm điểm LiDAR sang vật thể bên cạnh (ví dụ người đi bộ đứng sát xe đỗ). Trong báo cáo ghi rõ: *"ngưỡng do nhóm tự đặt, chưa có nguồn chuẩn"*.
+## 4. Tọa độ, timestamp và quỹ đạo
 
-## 6. Failure case (dự kiến, xác nhận lại bằng số sau khi chạy)
+- World: trục x/y, mét. Ego: x hướng trước, y hướng trái; yaw dương ngược chiều kim đồng hồ, radian.
+- R(θ) = [[cosθ, -sinθ], [sinθ, cosθ]]; c(t) là vị trí ego trong world.
+- t_report = t_ref; t_true = t_ref - Δt. Công thức dùng Δt bằng giây.
+- Vị trí vật thể đúng: P_gt = c_ref + R(yaw_ref) @ [d, 0].
+- Phép đo: q = R(yaw_true).T @ (P_gt - c_true) + noise, trong ego tại t_true.
+- Không bù: P_pre = c_ref + R(yaw_ref) @ q. Đây là phép biến đổi cố ý dùng pose ở timestamp báo sai.
 
-Kịch bản **C (rẽ cua), vật thể cách 40 m**: bù tuyến tính không xét góc quay nên E_post vẫn vượt ngưỡng 0,5 m ở offset ≥ 50 ms. Nếu số thực tế khác dự kiến, nhóm chọn hàng có E_post lớn nhất và họp lại lúc phút 95.
+Ego bắt đầu tại (0, 0), yaw 0, thời điểm 0:
 
-## 7. Cải tiến và fallback (đã chốt)
+- A: c(t) = [20*t, 0], v(t) = 20.
+- B: c(t) = [10*t + 0.5*3*t², 0], v(t) = 10 + 3*t.
+- C: c(t) = [30*sin(ω*t), 30*(1-cos(ω*t))], yaw(t) = ω*t, v(t) = 10.
 
-- **Cải tiến:** bù chuyển động có xét yaw rate từ IMU (mô hình constant turn rate). Kiểm chứng bằng E_post ở kịch bản C trước và sau cải tiến.
-- **Fallback:** khi offset ước lượng > 30 ms **và** yaw rate > 0,2 rad/s, không ghép điểm LiDAR vào bbox camera mà để mỗi sensor tracking riêng, đồng thời ghi log cảnh báo đồng bộ.
-- **Trade-off:** bù bằng phần mềm thì rẻ nhưng phụ thuộc vào việc biết đúng offset. Đồng bộ phần cứng (PTP, trigger chung) chính xác hơn nhưng tốn chi phí và công tích hợp. Với ADAS chạy tốc độ cao, nên có đồng bộ phần cứng; bù phần mềm chỉ là lớp bảo vệ thứ hai.
+## 5. Phương án bù và thông tin được phép dùng
 
-## 8. Cấu trúc repo (bắt buộc đúng tên)
+Hàm bù nhận q, pose tại t_ref, v_ref, yaw_rate_ref và Δt. Nhóm giả định biết đúng offset và trạng thái hiện tại, chưa ước lượng chúng từ sensor.
 
-```
-K4-Track4-Day04-TenNhom-Sensor-Reality-Sprint/
-├── TEAMMATES.md          (họ tên đầy đủ + MSSV của 5 người)
-├── README.md             (bài toán, cài đặt, lệnh chạy, nguồn)
-├── requirements.txt
-├── config.yaml           (toàn bộ thông số ở mục 3)
-├── src/
-│   ├── simulate.py       (TV3)
-│   ├── compensate.py     (TV4)
-│   ├── run_benchmark.py  (TV5)
-│   └── plot.py           (TV5)
-├── results/              (results.csv + log)
-├── plots/
-└── reports/
-    ├── TV1_HoTen_MSSV.pdf
-    └── ... (đủ 5 bản riêng)
-```
+**P_gt và pose thật tại t_true chỉ dùng sinh dữ liệu/chấm điểm. Hàm bù không được dùng chúng hoặc gia tốc thật.**
 
-Lệnh chạy chung: `python src/run_benchmark.py --config config.yaml`
+### Không bù
 
-## 9. Phân công
+P_pre = c_ref + R(yaw_ref) @ q.
 
-| Người | Phụ trách | Nộp lên repo |
+### Bù tịnh tiến, bỏ qua quay
+
+c_old_hat = c_ref - R(yaw_ref) @ [v_ref*Δt, 0].
+
+yaw_old_hat = yaw_ref.
+
+P_linear = c_old_hat + R(yaw_old_hat) @ q.
+
+### Bù vận tốc và yaw rate không đổi (CTRV)
+
+Với ω = yaw_rate_ref: nếu |ω| < 1e-8, dùng nhánh tịnh tiến để tránh chia cho 0. Ngược lại:
+
+~~~text
+b = [v_ref/ω * sin(ω*Δt), v_ref/ω * (cos(ω*Δt) - 1)]
+c_old_hat = c_ref - R(yaw_ref) @ b
+yaw_old_hat = yaw_ref - ω*Δt
+P_ctrv = c_old_hat + R(yaw_old_hat) @ q
+~~~
+
+A và C khớp giả định của CTRV; B có gia tốc nên có thể còn sai số. Đây là kết quả dự kiến cần đối chiếu bằng phép chạy.
+
+## 6. Metric và ngưỡng
+
+Với từng mẫu/phương án k: e_k[i] = ||P_k[i] - P_gt[i]||₂, mét. Báo cáo mean và max trên cùng 100 mẫu; nhỏ hơn là tốt hơn.
+
+- E_pre: trước bù.
+- E_post_linear: sau bù tịnh tiến.
+- E_post_ctrv: sau bù tịnh tiến + quay.
+- Baseline offset 0 có nhiễu nền; ba phương án phải trùng nhau trong sai số số học. Không yêu cầu baseline bằng 0 khi bật noise.
+- Tham chiếu theo mẫu: vdt[i] = v_ref[i]*Δt; lưu vdt_mean_m.
+- formula_dev_pct = 100 * mean(abs(e_pre[i] - vdt[i])) / mean(vdt[i]). Offset 0 ghi N/A (ô trống CSV). Đây là độ lệch khỏi mô hình đơn giản, không phải chất lượng detector; noise cũng ảnh hưởng đại lượng này.
+
+Ngưỡng minh họa 0,5 m do nhóm đặt, chưa phải tiêu chuẩn an toàn. Mỗi phương án có exceed_rate = mean(e_k > 0.5), trong [0,1]. Khi nói vượt ngưỡng theo mean phải chỉ rõ E_mean > 0.5; không dùng lẫn mean, max và exceed_rate.
+
+## 7. Failure case và engineering decision
+
+- Dự kiến C, d=40 m, offset 50–200 ms: linear còn lỗi do bỏ qua quay. Chỉ chốt offset/con số sau chạy.
+- Chọn một hàng kết quả cùng baseline tương ứng; ghi mean/max/exceed_rate, plot và log.
+- Cải tiến kiểm chứng trong lab: CTRV; so linear/CTRV trên cùng tổ hợp.
+- Quyết định dự kiến: kiểm tra timestamp và xét quay khi bù, đặc biệt với vật thể xa. Kết luận cuối bám số đo.
+- Fallback cho vòng thử tiếp: đánh dấu dữ liệu chưa căn chỉnh khi đồng bộ hoặc ước lượng chuyển động không đủ tin cậy, tránh association cứng cho tới khi kiểm tra lại. Chưa triển khai tracker/fallback hoặc đo hiệu quả của chúng.
+- Bỏ quy tắc cố định 30 ms/0,2 rad/s vì chưa có cơ sở xác nhận.
+- Trade-off: giả định biết offset, chất lượng vận tốc/yaw rate, giới hạn khi có gia tốc, chi phí tính toán chưa đo. TV2 tìm nguồn cho PTP/trigger và giới hạn tích hợp trước khi dùng làm khuyến nghị.
+
+## 8. Giao diện bàn giao
+
+TV3: run_simulation(scenario, offset_ms, distance_m, cfg) -> pandas.DataFrame.
+
+~~~text
+scenario, frame, object_id, offset_ms, distance_m, noise_seed,
+t_ref_s, t_true_s, gt_x_world_m, gt_y_world_m,
+lidar_x_ego_m, lidar_y_ego_m,
+ego_x_ref_m, ego_y_ref_m, yaw_ref_rad, v_ref_mps, yaw_rate_ref_radps
+~~~
+
+object_id phân biệt phép thử độc lập; phải giữ cùng ID giữa offset của cùng scenario/distance/frame. GT chỉ dùng đánh giá, không đưa vào hàm bù.
+
+TV4 cung cấp hai hàm:
+
+~~~text
+compensate_linear(q_ego, ego_xy_ref, yaw_ref, v_ref, yaw_rate_ref, dt_s)
+compensate_ctrv(q_ego, ego_xy_ref, yaw_ref, v_ref, yaw_rate_ref, dt_s)
+~~~
+
+q_ego và ego_xy_ref: NumPy arrays (N, 2); yaw_ref/v_ref/yaw_rate_ref: (N,); dt_s: scalar. Đầu ra (N, 2), vị trí world theo mét. Không mutate input. TV4 sở hữu logic bù; TV5 sở hữu metric chung.
+
+TV5 ghi samples.csv gồm cột mô phỏng và vị trí dự đoán/sai số từng phương án. results.csv có 45 hàng nếu đầy đủ:
+
+~~~text
+scenario, offset_ms, distance_m, n_samples, noise_seed, v_ref_mean_mps,
+e_pre_mean_m, e_pre_max_m, e_post_linear_mean_m, e_post_linear_max_m,
+e_post_ctrv_mean_m, e_post_ctrv_max_m, vdt_mean_m, formula_dev_pct,
+pre_exceed_rate, linear_exceed_rate, ctrv_exceed_rate
+~~~
+
+## 9. Đường chạy và bằng chứng
+
+Giao diện sẽ triển khai:
+
+~~~powershell
+python -m src.run_benchmark --config config_chot.yaml
+python -m src.run_benchmark --config config_chot.yaml --scenarios A C
+~~~
+
+Lệnh chưa chạy được cho tới khi TV3/TV4/TV5 hoàn thành code.
+
+- results/samples.csv; results/results.csv; results/config_used.yaml; results/run_log.txt.
+- Log: thời điểm, lệnh thật, commit hash, working tree sạch/bẩn, seed, phiên bản Python/thư viện, số tổ hợp và runtime.
+- plots/timeline.png: phân biệt timestamp báo và thời điểm đo thật.
+- plots/error_vs_offset.png: ba phương án, baseline, mức lỗi, đơn vị, ngưỡng minh họa; tách scenario/distance rõ.
+- plots/alignment_turn.png: một phép thử C, d=40 m, offset=100 ms, vị trí đúng và ba dự đoán. Không gọi là quỹ đạo một vật thể xuyên suốt mẫu.
+- Mỗi plot ghi “Dữ liệu tổng hợp”.
+
+## 10. Phân công và mốc
+
+| Người | Sở hữu | Bàn giao |
 |---|---|---|
-| TV1 [Tên] (đội trưởng) | Repo, README, TEAMMATES.md, trade-off, ghép slide | README.md, TEAMMATES.md, slide chung |
-| TV2 [Tên] | Đọc nguồn (S9 Huai 2021 + 1 nguồn motion compensation), viết phần Method | `reports/sources.md` |
-| TV3 [Phạm Hoàng Anh Khôi-2A202602404] | Code mô phỏng quỹ đạo, timestamp, offset, tính E_pre | `simulate.py`, `config.yaml` |
-| TV4 [Tên] | Code bù chuyển động, tính E_post, so với `v × Δt`, phân tích failure case | `compensate.py`, đoạn phân tích failure |
-| TV5 [Tên] | Chạy toàn bộ benchmark, bảng kết quả, 3 plot (timeline, sai số theo offset, quỹ đạo trước/sau bù) | `run_benchmark.py`, `plot.py`, `results/`, `plots/` |
+| TV1 | Tài liệu chốt, README, TEAMMATES, requirements, tích hợp, Problem/Decision | Quy ước chung, slide, báo cáo riêng |
+| TV2 | reports/sources.md, Method, nguồn/limitation | Link đúng, thông tin tái hiện, slide Method |
+| TV3 — Phạm Hoàng Anh Khôi (2A202602404) | src/simulate.py, triển khai theo config_chot.yaml | DataFrame, quỹ đạo/timestamp/nhiễu |
+| TV4 | src/compensate.py | Hai hàm bù, failure/cải tiến |
+| TV5 | src/run_benchmark.py, src/plot.py, kết quả/bằng chứng | Metric, CSV/log/plot, slide Benchmark |
 
-## 10. Mốc thời gian
+TV1 quản lý thay đổi config; TV3 đề xuất chỉnh khi cần. Mỗi người làm nhánh riêng, sở hữu file phân công; chốt nhánh tích hợp trong TEAMMATES và ghép theo mốc. Không ghi đè việc người khác. Ghi commit và trạng thái code thật dùng để chạy.
 
-| Phút | Phải xong |
+| Phút | Đầu ra |
 |---|---|
-| 15 | Repo đã tạo, mọi người clone được. TEAMMATES.md đủ 5 người. |
-| 45 | TV2 có tóm tắt nguồn. TV3 chạy được baseline (E ≈ 0 ở offset 0). TV4 có hàm bù. TV5 có khung bảng và code plot. |
-| 80 | Code ghép xong, chạy đủ ma trận thí nghiệm. |
-| 95 | Có bảng kết quả + 3 plot. **Họp 5 phút xác nhận failure case.** |
-| 115 | Mỗi người xong bản báo cáo riêng, đẩy vào `reports/`. |
-| 120 | Tập pitch xong. |
+| 15 | Chốt quy ước/giao diện, đủ 5 người có repo/nhánh |
+| 45 | Nguồn sơ bộ, baseline, hàm bù, runner/plot |
+| 80 | A/C chạy được; thêm B khi phép chạy chính ổn |
+| 95 | CSV/log/plot; họp 5 phút chốt failure từ số đo |
+| 115 | README chính xác, slide và 5 báo cáo riêng |
+| 120 | Pitch đã tập 3–5 phút |
 
-## 11. Pitch 5 phút
+## 11. Báo cáo và pitch
 
-| Thứ tự | Người | Nội dung | Thời lượng |
-|---|---|---|---|
-| 1 | TV1 | Problem: ADAS, camera–LiDAR, lệch timestamp | 40 giây |
-| 2 | TV2 | Method: nguồn nói gì, input/output, limitation | 50 giây |
-| 3 | TV3 | Setup mô phỏng + chạy demo trực tiếp | 50 giây |
-| 4 | TV5 | Kết quả: bảng + plot sai số theo offset | 60 giây |
-| 5 | TV4 | Failure case rẽ cua, vì sao bù tuyến tính chưa đủ | 50 giây |
-| 6 | TV1 | Cải tiến, fallback, trade-off | 30 giây |
+Mỗi báo cáo có Problem → Method → Benchmark → Failure case → Engineering decision. Dùng bằng chứng chung nhưng viết bằng lời của từng người. Tách kết quả nguồn, số tự đo và suy luận.
 
-## 12. Luật chung
+Pitch: TV1 Problem 40 s; TV2 Method 50 s; TV3 Setup 50 s; TV5 Benchmark 60 s; TV4 Failure/cải tiến 50 s; TV1 Decision 30 s. Tổng 280 s, còn 20 s chuyển phần. Ưu tiên plot/log đã lưu; demo trực tiếp khi đã xác nhận ổn định.
 
-- Báo cáo riêng của mỗi người đủ 5 mục: **Problem, Method, Benchmark, Failure case, Engineering decision**. Dùng chung số liệu nhóm nhưng tự viết bằng lời của mình.
-- Câu kết quả nhóm đo viết dạng *"Nhóm quan sát được…"*. Câu từ paper viết dạng *"Paper/repo cho biết…"*. Không trộn hai loại.
-- Mọi con số trong báo cáo phải truy được về `results.csv` hoặc log.
-- **Mỗi người tự nộp trên VLearn**: file báo cáo riêng + URL repo chung. Nộp xong mở lại link kiểm tra.
+Mỗi người tự nộp VLearn theo hướng dẫn lớp. Tên repo, định dạng PDF và tên file là quy ước nhóm; đối chiếu yêu cầu giảng viên nếu có hướng dẫn bổ sung.
+
+## 12. Chuyển đổi từ code hiện tại
+
+config.yaml giữ schema cũ để kiểm tra lại phiên bản hiện tại. config_chot.yaml là cấu hình mục tiêu theo thiết kế này. TV3/TV5 cập nhật code và CLI để đọc cấu hình mục tiêu trước khi thay cấu hình mặc định. Không chạy runner cũ với config_chot.yaml.
+
+Tài liệu TV1 và config mục tiêu có thể tích hợp trước; nghiệm thu số đo theo reports/TV1_HANDOFF.md sau khi sửa code. CSV/plot cũ được giữ để truy vết lỗi, không dùng làm kết quả benchmark đạt yêu cầu.

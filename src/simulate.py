@@ -25,22 +25,70 @@ import yaml
 from typing import Dict, Tuple, Optional
 
 
-def get_vehicle_state(
-    t: float,
-    scenario_cfg: dict
-) -> Tuple[float, float, float, float, float]:
-    """
-    Tính trạng thái xe tại thời gian t (x, y, yaw, v, yaw_rate)
+class ObjectTrajectorySimulator:
+    """Mô phỏng quỹ đạo xe và vị trí vật thể"""
     
-    Kịch bản:
-      - A (Straight): Chạy thẳng đều v = 20 m/s
-      - B (Acceleration): v0 = 10 m/s, a = 3 m/s²
-      - C (Turning): v = 10 m/s, R = 30 m, yaw_rate = 10/30 = 0.3333 rad/s
-    """
-    v0 = float(scenario_cfg.get('velocity_ms', 20.0))
-    a = float(scenario_cfg.get('acceleration_ms2', 0.0))
-    turn_r = scenario_cfg.get('turn_radius_m')
-    yaw_rate = float(scenario_cfg.get('yaw_rate_rads', 0.0))
+    def __init__(self, config: SimulationConfig):
+        self.config = config
+        np.random.seed(config.random_seed)
+        self.rng = np.random.RandomState(config.random_seed)
+    
+    def get_vehicle_state(self, t: float) -> Tuple[float, float, float, float]:
+        """
+        Lấy vị trí và hướng xe tại thời gian t
+        
+        Returns:
+            (x, y, yaw, v) - vị trí xe (m), hướng (rad), vận tốc (m/s)
+        """
+        # Vị trí xe dọc trục x (chuyển động thuận)
+        if self.config.acceleration_ms2 != 0:
+            # Tăng tốc: x = v0*t + 0.5*a*t²
+            x = self.config.velocity_ms * t + 0.5 * self.config.acceleration_ms2 * t**2
+            v = self.config.velocity_ms + self.config.acceleration_ms2 * t
+        else:
+            # Chuyển động đều
+            x = self.config.velocity_ms * t
+            v = self.config.velocity_ms
+        
+        # Góc quay (yaw)
+        yaw = self.config.yaw_rate_rads * t
+        
+        # Vị trí y (0 nếu chạy thẳng)
+        if self.config.turn_radius_m is not None and self.config.turn_radius_m > 0:
+            # Quỹ đạo tròn: y = R * (1 - cos(yaw))
+            y = self.config.turn_radius_m * (1 - np.cos(yaw))
+        else:
+            y = 0.0
+        
+        return x, y, yaw, v
+    
+    def get_object_position_camera_frame(self, t: float) -> Tuple[float, float]:
+        """
+        Vị trí vật thể trong hệ tọa độ camera (xe)
+        Vật thể tĩnh trong hệ tọa độ tuyệt đối ở vị trí (object_distance_m, 0)
+        
+        Returns:
+            (obj_x, obj_y) - tọa độ vật thể so với xe ở thời gian t
+        """
+        # Vị trí vật thể tĩnh trong hệ tọa độ tuyệt đối
+        obj_abs_x = self.config.object_distance_m
+        obj_abs_y = 0.0
+        
+        # Vị trí xe
+        xe_x, xe_y, yaw, _ = self.get_vehicle_state(t)
+        
+        # Chuyển vị trí vật thể từ hệ tọa độ tuyệt đối sang hệ tọa độ xe
+        # Bước 1: Dịch xe về gốc
+        dx = obj_abs_x - xe_x
+        dy = obj_abs_y - xe_y
+        
+        # Bước 2: Quay ngược góc xe để đưa vào hệ xe (rotate by -yaw)
+        cos_yaw = np.cos(-yaw)
+        sin_yaw = np.sin(-yaw)
+        obj_x = dx * cos_yaw - dy * sin_yaw
+        obj_y = -dx * sin_yaw + dy * cos_yaw
+        
+        return obj_x, obj_y
     
     if a != 0:
         # Kịch bản B: Chạy thẳng tăng tốc
