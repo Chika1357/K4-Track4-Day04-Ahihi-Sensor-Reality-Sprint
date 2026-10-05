@@ -1,29 +1,29 @@
-scenario,true_offset_ms,est_offset_ms,abs_error_ms,observable,sharpness
-A,0,0.0,0.0,True,39.57
-A,50,50.0,0.0,True,31.47
-A,73,70.0,3.0,True,26.36
-A,100,100.0,0.0,True,23.37
-A,128,125.0,3.0,True,18.7
-A,150,150.0,0.0,True,23.26
-A,200,200.0,0.0,True,31.36
-B,0,0.0,0.0,True,50.16
-B,50,50.0,0.0,True,39.82
-B,73,75.0,2.0,True,32.48
-B,100,100.0,0.0,True,29.54
-B,128,130.0,2.0,True,23.43
-B,150,150.0,0.0,True,29.79
-B,200,200.0,0.0,True,39.95
-C,0,0.0,0.0,True,24.05
-C,50,50.0,0.0,True,19.06
-C,73,70.0,3.0,True,16.5
-C,100,100.0,0.0,True,14.08
-C,128,125.0,3.0,True,11.58
-C,150,150.0,0.0,True,13.97
-C,200,200.0,0.0,True,18.97
-D,0,0.0,0.0,False,0.0
-D,50,0.0,50.0,False,0.0
-D,73,0.0,73.0,False,0.0
-D,100,0.0,100.0,False,0.0
-D,128,0.0,128.0,False,0.0
-D,150,0.0,150.0,False,0.0
-D,200,0.0,200.0,False,0.0
+scenario,true_offset_ms,est_offset_ms,abs_error_ms,observable,sharpness,sim_source
+A,0,0.0,0.0,True,39.57,offset_sim.py (TV2)
+A,50,50.0,0.0,True,31.47,offset_sim.py (TV2)
+A,73,70.0,3.0,True,26.36,offset_sim.py (TV2)
+A,100,100.0,0.0,True,23.37,offset_sim.py (TV2)
+A,128,125.0,3.0,True,18.7,offset_sim.py (TV2)
+A,150,150.0,0.0,True,23.26,offset_sim.py (TV2)
+A,200,200.0,0.0,True,31.36,offset_sim.py (TV2)
+B,0,0.0,0.0,True,50.16,offset_sim.py (TV2)
+B,50,50.0,0.0,True,39.82,offset_sim.py (TV2)
+B,73,75.0,2.0,True,32.48,offset_sim.py (TV2)
+B,100,100.0,0.0,True,29.54,offset_sim.py (TV2)
+B,128,130.0,2.0,True,23.43,offset_sim.py (TV2)
+B,150,150.0,0.0,True,29.79,offset_sim.py (TV2)
+B,200,200.0,0.0,True,39.95,offset_sim.py (TV2)
+C,0,0.0,0.0,True,24.05,offset_sim.py (TV2)
+C,50,50.0,0.0,True,19.06,offset_sim.py (TV2)
+C,73,70.0,3.0,True,16.5,offset_sim.py (TV2)
+C,100,100.0,0.0,True,14.08,offset_sim.py (TV2)
+C,128,125.0,3.0,True,11.58,offset_sim.py (TV2)
+C,150,150.0,0.0,True,13.97,offset_sim.py (TV2)
+C,200,200.0,0.0,True,18.97,offset_sim.py (TV2)
+D,0,0.0,0.0,False,0.0,offset_sim.py (TV2)
+D,50,0.0,50.0,False,0.0,offset_sim.py (TV2)
+D,73,0.0,73.0,False,0.0,offset_sim.py (TV2)
+D,100,0.0,100.0,False,0.0,offset_sim.py (TV2)
+D,128,0.0,128.0,False,0.0,offset_sim.py (TV2)
+D,150,0.0,150.0,False,0.0,offset_sim.py (TV2)
+D,200,0.0,200.0,False,0.0,offset_sim.py (TV2)
