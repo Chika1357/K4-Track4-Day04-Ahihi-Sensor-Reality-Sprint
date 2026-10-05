@@ -76,7 +76,7 @@ Lệnh chạy chung: `python src/run_benchmark.py --config config.yaml`
 |---|---|---|
 | TV1 [Tên] (đội trưởng) | Repo, README, TEAMMATES.md, trade-off, ghép slide | README.md, TEAMMATES.md, slide chung |
 | TV2 [Tên] | Đọc nguồn (S9 Huai 2021 + 1 nguồn motion compensation), viết phần Method | `reports/sources.md` |
-| TV3 [Tên] | Code mô phỏng quỹ đạo, timestamp, offset, tính E_pre | `simulate.py`, `config.yaml` |
+| TV3 [Phạm Hoàng Anh Khôi-2A202602404] | Code mô phỏng quỹ đạo, timestamp, offset, tính E_pre | `simulate.py`, `config.yaml` |
 | TV4 [Tên] | Code bù chuyển động, tính E_post, so với `v × Δt`, phân tích failure case | `compensate.py`, đoạn phân tích failure |
 | TV5 [Tên] | Chạy toàn bộ benchmark, bảng kết quả, 3 plot (timeline, sai số theo offset, quỹ đạo trước/sau bù) | `run_benchmark.py`, `plot.py`, `results/`, `plots/` |
 

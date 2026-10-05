@@ -1,0 +1,60 @@
+# Thông số chốt cho CHỌT LAB T4
+
+# 1. Offset LiDAR (ms) - áp dụng vào timestamp
+offsets_ms:
+  - 0
+  - 50
+  - 100
+  - 150
+  - 200
+
+# 2. Kịch bản
+scenarios:
+  # A: Chạy thẳng đều
+  scenario_a_straight:
+    name: "Straight Line"
+    duration_sec: 10
+    velocity_ms: 20  # 20 m/s không đổi
+    acceleration_ms2: 0
+    turn_radius_m: null
+    yaw_rate_rads: 0.0
+
+  # B: Tăng tốc
+  scenario_b_accel:
+    name: "Acceleration"
+    duration_sec: 10
+    velocity_ms: 10  # bắt đầu từ
+    acceleration_ms2: 3  # gia tốc 3 m/s²
+    turn_radius_m: null
+    yaw_rate_rads: 0.0
+
+  # C: Rẽ cua
+  scenario_c_turn:
+    name: "Turning"
+    duration_sec: 10
+    velocity_ms: 10  # 10 m/s
+    acceleration_ms2: 0
+    turn_radius_m: 30  # bán kính 30m → yaw_rate ≈ 10/30 = 0.33 rad/s
+    yaw_rate_rads: 0.33
+
+# 3. Khoảng cách vật thể phía trước (m)
+object_distances_m:
+  - 10
+  - 20
+  - 40
+
+# 4. Sensor frequencies (Hz)
+camera_freq_hz: 30
+lidar_freq_hz: 10
+
+# 5. Nhiễu đo LiDAR
+lidar_noise_sigma_m: 0.02
+random_seed: 42
+
+# 6. Output paths
+results_dir: "./results"
+plots_dir: "./plots"
+reports_dir: "./reports"
+
+# 7. Ngưỡng sai lệch
+threshold_m: 0.5  # Ngưỡng E > 0.5m = nguy hiểm
