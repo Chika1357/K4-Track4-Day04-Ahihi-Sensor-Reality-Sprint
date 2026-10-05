@@ -1,6 +1,6 @@
 # CHECKLIST TỪNG NGƯỜI — LAB T4
 
-Đọc [bản chốt](CHOT_LAB_T4.md) trước khi triển khai. Tham số lấy từ config.yaml; công thức/giao diện lấy theo bản chốt. TV1 cập nhật thay đổi rồi nhóm chạy lại các điều kiện liên quan.
+Đọc [bản chốt](CHOT_LAB_T4.md) trước khi triển khai. Tham số lấy từ config_chot.yaml; công thức/giao diện lấy theo bản chốt. TV1 cập nhật thay đổi rồi nhóm chạy lại các điều kiện liên quan.
 
 ## Mọi người
 
@@ -26,6 +26,8 @@
 
 - [ ] Giữ README/config/checklist nhất quán; cập nhật dependency khi cần thật.
 - [ ] Thu nguồn/thông tin tái hiện từ TV2.
+- [ ] Giao lỗi theo reports/CODE_REVIEW_T4.md; dùng checklist nghiệm thu reports/TV1_HANDOFF.md.
+- [ ] Dùng config.yaml chỉ để kiểm tra bản cũ; cấu hình mục tiêu là config_chot.yaml.
 - [ ] Tích hợp baseline và A/C trước; thêm B sau.
 - [ ] Kiểm tra metric chung, log và config thực tế.
 - [ ] Chuẩn bị slide Problem / Method / Setup / Benchmark / Failure / Decision.
@@ -52,7 +54,7 @@
 
 ## TV3 — Mô phỏng, src/simulate.py
 
-- [ ] Đọc config, tạo A/B/C và t_ref = 0.2 + arange(100)/10.
+- [ ] Đọc config_chot.yaml, tạo A/B/C và t_ref = 0.2 + arange(100)/10.
 - [ ] Mỗi mẫu đặt P_gt trước ego tại t_ref; giữ P_gt khi tính phép đo tại t_true.
 - [ ] Sinh q trong ego tại t_true; noise hai trục cùng seed giữa offset.
 - [ ] Trả DataFrame đúng mục 8; GT chỉ cho chấm điểm.
@@ -73,7 +75,7 @@
 
 ## TV5 — Runner, metric, plot và bằng chứng
 
-- [ ] Triển khai python -m src.run_benchmark --config config.yaml; hỗ trợ --scenarios A C.
+- [ ] Triển khai python -m src.run_benchmark --config config_chot.yaml; hỗ trợ --scenarios A C.
 - [ ] Gọi TV3/TV4; chấm ba phương án bằng cùng metric.
 - [ ] Ghi samples/results theo schema; 45 hàng đầy đủ hoặc 30 hàng A/C.
 - [ ] Formula deviation baseline N/A, tính theo mẫu trước tổng hợp.

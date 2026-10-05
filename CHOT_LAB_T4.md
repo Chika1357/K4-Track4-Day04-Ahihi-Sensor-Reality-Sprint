@@ -1,6 +1,6 @@
 # CHỐT LAB T4 — Sai số căn chỉnh vị trí do lệch timestamp
 
-Thiết kế này dùng để triển khai. Chưa có kết quả benchmark; dự đoán lý thuyết không phải số đã đo. TV1 quản lý thay đổi và cập nhật đồng thời tài liệu/cấu hình trước khi chạy lại.
+Thiết kế này là mục tiêu triển khai tiếp theo. Main đã có benchmark phiên bản cũ, nhưng kết quả hiện tại có lỗi ghép thời điểm và bù chuyển động nên chưa dùng để kết luận về sensor. Xem reports/CODE_REVIEW_T4.md; dự đoán lý thuyết không phải số đã đo. TV1 quản lý thay đổi và cập nhật đồng thời tài liệu/cấu hình trước khi chạy lại.
 
 ## 1. Problem và phạm vi
 
@@ -143,8 +143,8 @@ pre_exceed_rate, linear_exceed_rate, ctrv_exceed_rate
 Giao diện sẽ triển khai:
 
 ~~~powershell
-python -m src.run_benchmark --config config.yaml
-python -m src.run_benchmark --config config.yaml --scenarios A C
+python -m src.run_benchmark --config config_chot.yaml
+python -m src.run_benchmark --config config_chot.yaml --scenarios A C
 ~~~
 
 Lệnh chưa chạy được cho tới khi TV3/TV4/TV5 hoàn thành code.
@@ -162,7 +162,7 @@ Lệnh chưa chạy được cho tới khi TV3/TV4/TV5 hoàn thành code.
 |---|---|---|
 | TV1 | Tài liệu chốt, README, TEAMMATES, requirements, tích hợp, Problem/Decision | Quy ước chung, slide, báo cáo riêng |
 | TV2 | reports/sources.md, Method, nguồn/limitation | Link đúng, thông tin tái hiện, slide Method |
-| TV3 | src/simulate.py, triển khai theo config.yaml | DataFrame, quỹ đạo/timestamp/nhiễu |
+| TV3 — Phạm Hoàng Anh Khôi (2A202602404) | src/simulate.py, triển khai theo config_chot.yaml | DataFrame, quỹ đạo/timestamp/nhiễu |
 | TV4 | src/compensate.py | Hai hàm bù, failure/cải tiến |
 | TV5 | src/run_benchmark.py, src/plot.py, kết quả/bằng chứng | Metric, CSV/log/plot, slide Benchmark |
 
@@ -184,3 +184,9 @@ Mỗi báo cáo có Problem → Method → Benchmark → Failure case → Engine
 Pitch: TV1 Problem 40 s; TV2 Method 50 s; TV3 Setup 50 s; TV5 Benchmark 60 s; TV4 Failure/cải tiến 50 s; TV1 Decision 30 s. Tổng 280 s, còn 20 s chuyển phần. Ưu tiên plot/log đã lưu; demo trực tiếp khi đã xác nhận ổn định.
 
 Mỗi người tự nộp VLearn theo hướng dẫn lớp. Tên repo, định dạng PDF và tên file là quy ước nhóm; đối chiếu yêu cầu giảng viên nếu có hướng dẫn bổ sung.
+
+## 12. Chuyển đổi từ code hiện tại
+
+config.yaml giữ schema cũ để kiểm tra lại phiên bản hiện tại. config_chot.yaml là cấu hình mục tiêu theo thiết kế này. TV3/TV5 cập nhật code và CLI để đọc cấu hình mục tiêu trước khi thay cấu hình mặc định. Không chạy runner cũ với config_chot.yaml.
+
+Tài liệu TV1 và config mục tiêu có thể tích hợp trước; nghiệm thu số đo theo reports/TV1_HANDOFF.md sau khi sửa code. CSV/plot cũ được giữ để truy vết lỗi, không dùng làm kết quả benchmark đạt yêu cầu.
