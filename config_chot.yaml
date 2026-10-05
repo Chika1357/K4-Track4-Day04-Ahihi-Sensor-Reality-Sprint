@@ -1,5 +1,5 @@
-# Cấu hình mục tiêu; runner hiện tại dùng config.yaml schema cũ.
-# TV3/TV5 cần cập nhật code/CLI trước khi dùng file này.
+# Cấu hình benchmark hiện tại: python -m src.run_benchmark --config config_chot.yaml.
+# Đặc tả/điểm chưa nghiệm thu: CHOT_LAB_T4.md và reports/TV1_HANDOFF.md.
 benchmark:
   scenarios: [A, B, C]
   offsets_ms: [0, 50, 100, 150, 200]
@@ -13,7 +13,7 @@ benchmark:
   seed: 42
   noise_std_per_axis_m: 0.02
   threshold_m: 0.5
-  yaw_rate_epsilon_radps: 1.0e-8
+  yaw_rate_epsilon_radps: 1.0e-8  # Chưa được hàm bù đọc; code hiện dùng 1e-6.
 
 scenarios:
   A:
