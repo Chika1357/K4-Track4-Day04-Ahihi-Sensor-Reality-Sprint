@@ -24,7 +24,7 @@ Cập nhật 05/10/2026, code benchmark đã kiểm tra: `107510809f3d8bb988eb53
 | TV2 | Sửa run_estimate_on_sim.py: API mới cần cfg, trả DataFrame và không có sim.pose/ObjectTrajectorySimulator | Wrapper chạy lại được với đúng API và ghi simulator/version; hoặc loại wrapper khỏi phạm vi pitch |
 | TV2 | Rà nguồn/slide: giới hạn Bảng IV của Park, bỏ suy luận target ⇒ offline; diễn giải KITTI là OXTS thật + điểm ảo/offset nhân tạo | Không dùng số paper làm số tự đo; không gọi chênh timestamp là lỗi clock đã chứng minh; mọi claim có nguồn/phạm vi |
 | TV4 + TV5 | Báo cáo hiện có quy tắc fallback 30 ms/0,2 rad/s chưa được thử | Xóa hoặc ghi là giả thuyết cần validation; thống nhất với Decision của TV1 |
-| TV1 + TV2 | Điền thông tin cá nhân còn thiếu; TV1 điền tên nhóm chính thức | TEAMMATES và báo cáo không còn ô thông tin cần xác nhận |
+| TV1 + TV2 | TV1 đã điền Nguyễn Tuấn Thành — 2A202602640; còn thông tin TV2 và tên nhóm chính thức | TEAMMATES và báo cáo không còn ô thông tin cần xác nhận |
 | Cả nhóm | Mỗi người viết đủ năm mục và tập pitch | Đủ 5 bản; mỗi người tự nộp VLearn; trình bày 3–5 phút, mở được CSV/log/plot |
 
 Đây là đầu việc để TV1 trao đổi với nhóm; chưa gửi bình luận GitHub hoặc tin nhắn cho thành viên.
