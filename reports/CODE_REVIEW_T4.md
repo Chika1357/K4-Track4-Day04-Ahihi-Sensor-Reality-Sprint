@@ -1,4 +1,6 @@
-# Review code T4 — bàn giao TV3/TV4/TV5
+# Review code T4 — bàn giao TV3/TV4/TV5 (lịch sử)
+
+Các nhận xét dưới đây thuộc phiên bản trước benchmark 1075108. Lỗi mốc thời gian, chiều bù và quỹ đạo tròn đã được sửa trong benchmark chính. Xem [TV1_HANDOFF](TV1_HANDOFF.md) và [TV1_REVIEW](TV1_REVIEW.md) cho trạng thái ngày 05/10/2026; không dùng danh sách lịch sử để kết luận code hiện tại còn tất cả các lỗi cũ.
 
 ## Phạm vi và trạng thái
 

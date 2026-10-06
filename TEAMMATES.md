@@ -4,16 +4,16 @@
 
 - Tên nhóm: Ahihi
 - URL repository: https://github.com/Chika1357/K4-Track4-Day04-Ahihi-Sensor-Reality-Sprint
-- Nhánh tích hợp: main; TV1 ghép thay đổi đã kiểm tra từ các nhánh thành viên. Tài liệu TV1 đang chuẩn bị trên thanh_dev.
+- Nhánh tích hợp: main. Nhánh TV1: thanh_dev, cập nhật từ main commit 823da21 ngày 06/10/2026.
 
 | Vai trò | Họ tên | MSSV | Nhánh làm việc | Trách nhiệm |
 |---|---|---|---|---|
 | TV1 | Nguyễn Tuấn Thành | 2A202602640 | thanh_dev | Chốt thiết kế, tài liệu, tích hợp, Problem/Decision |
-| TV2 | Phạm Văn Hoàng Anh Tú | 2A202602507 | tv2_sources | Nguồn, Method, limitation |
+| TV2 | Phạm Văn Hoàng Anh Tú | 2A202602507 | tv2-method-offset, tv2-report-fix | Nguồn, Method, limitation, ước lượng offset mở rộng |
 | TV3 | Phạm Hoàng Anh Khôi | 2A202602404 | 1-Feat-Simulation | Mô phỏng/dữ liệu |
 | TV4 | Bùi Đăng Khoa | 2A202602617 | khoadev | Bù, failure/cải tiến |
-| TV5 | Hoàng Trung Anh | 2A202602521 | tv5_benchmark | Runner, metric, CSV/log/plot |
+| TV5 | Hoàng Trung Anh | 2A202602521 | dev-hoanganh | Runner, metric, CSV/log/plot |
 
-Tên nhánh là quy ước làm việc; nhánh 1-Feat-Simulation đã có trên remote, các nhánh tv2_sources/tv4_compensation/tv5_benchmark là đề xuất và chưa được tạo bởi bản chốt này. Nếu thành viên đã có nhánh riêng, dùng nhánh đó và cập nhật bảng để tránh tạo nhánh trùng việc.
+Các nhánh trên đã được thấy trên remote; TV2 bổ sung nhánh báo cáo tại main ngày 06/10/2026. Thông tin TV1 và tên nhóm do Nguyễn Tuấn Thành cung cấp; thông tin TV2 lấy từ báo cáo và bảng thành viên đã được merge. Quyền truy cập và tình trạng nộp VLearn do từng thành viên xác nhận.
 
 Mỗi thành viên viết báo cáo riêng đủ năm mục và tự nộp VLearn. Chỉ điền thông tin cá nhân do thành viên cung cấp.

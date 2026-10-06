@@ -1,0 +1,107 @@
+{
+  "reviewed_at_utc": "2026-10-05T16:38:33+00:00",
+  "benchmark_source_commit": "107510809f3d8bb988eb53b76310a72603593226",
+  "scope": "Isolated source archive; existing workspace results/plots were not overwritten.",
+  "source_archive_has_git_metadata": false,
+  "config_values_equal_committed_config": true,
+  "environment": {
+    "python": "3.11.9",
+    "numpy": "1.26.4",
+    "matplotlib": "3.10.1",
+    "pandas": "2.2.3",
+    "PyYAML": "6.0.2"
+  },
+  "fresh_dependency_install_tested": false,
+  "full_conditions": 45,
+  "full_samples": 4500,
+  "max_numeric_difference_vs_committed_results_csv": 0.0,
+  "summary_vs_samples_tolerance_m": 1.1e-06,
+  "minimal_conditions": 30,
+  "minimal_samples": 3000,
+  "baseline_methods_equal": true,
+  "baseline_formula_deviation_is_na": true,
+  "tv1_numeric_tables_match_csv": true,
+  "local_markdown_links_checked": 35,
+  "runs": [
+    {
+      "command": "python -m src.run_benchmark --config config_chot.yaml",
+      "exit_code": 0,
+      "elapsed_s": 1.968,
+      "stdout": "Completed 45 conditions; results/results.csv and results/samples.csv were written.",
+      "argv": [
+        "C:\\Users\\PC\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+        "-X",
+        "utf8",
+        "-m",
+        "src.run_benchmark",
+        "--config",
+        "config_chot.yaml"
+      ]
+    },
+    {
+      "command": "python -m src.plot --config config_chot.yaml",
+      "exit_code": 0,
+      "elapsed_s": 2.354,
+      "stdout": "Wrote timeline.png, error_vs_offset.png, and alignment_turn.png to plots",
+      "argv": [
+        "C:\\Users\\PC\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+        "-X",
+        "utf8",
+        "-m",
+        "src.plot",
+        "--config",
+        "config_chot.yaml"
+      ]
+    },
+    {
+      "command": "python -m src.run_benchmark --config config_chot.yaml --scenarios A C",
+      "exit_code": 0,
+      "elapsed_s": 1.67,
+      "stdout": "Completed 30 conditions; results/results.csv and results/samples.csv were written.",
+      "argv": [
+        "C:\\Users\\PC\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+        "-X",
+        "utf8",
+        "-m",
+        "src.run_benchmark",
+        "--config",
+        "config_chot.yaml",
+        "--scenarios",
+        "A",
+        "C"
+      ]
+    },
+    {
+      "command": "python -m src.plot --config config_chot.yaml",
+      "exit_code": 0,
+      "elapsed_s": 2.757,
+      "stdout": "Wrote timeline.png, error_vs_offset.png, and alignment_turn.png to plots",
+      "argv": [
+        "C:\\Users\\PC\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+        "-X",
+        "utf8",
+        "-m",
+        "src.plot",
+        "--config",
+        "config_chot.yaml"
+      ]
+    }
+  ],
+  "workspace_artifact_sha256": {
+    "results/results.csv": "61f18b920b83ebd1e58f4162702d0cb6fcd4533350a8a36c140de527d764006c",
+    "results/samples.csv": "2911c97cf5b885560cbe84a33301f7328f9df9ce19fd9e7db857b9cebf98834a",
+    "results/config_used.yaml": "f8c8b03f2a16135ca928a11fadb460b7c47b37ccaf9ff186795bd06e44e8ed41",
+    "results/run_log.txt": "878ea8f60a7b41040f3a4055f764499064401a9bff3858f14769c2436b7c134f",
+    "plots/timeline.png": "5e2f9880ac3763349163d9a1545a67f657c13801bbc99ea4da28ad1085960819",
+    "plots/error_vs_offset.png": "31169a74f47d6c4542ac4c6a51fc23346982be26027a22b15f041f2441c390e2",
+    "plots/alignment_turn.png": "2415d024057bc4c5e35b82d89a7fdc989915eab5684e8c741a5b7f94eb562b63"
+  },
+  "open_items": [
+    "noise changes across offsets",
+    "per-method exceed_rate not exported",
+    "formula deviation definition differs for B",
+    "TV2 integrated offset wrapper API",
+    "TV5 log provenance and report/slide consistency",
+    "member information and submissions"
+  ]
+}

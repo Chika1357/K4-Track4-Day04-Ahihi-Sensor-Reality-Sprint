@@ -1,6 +1,6 @@
 # CHỐT LAB T4 — Sai số căn chỉnh vị trí do lệch timestamp
 
-Thiết kế này là mục tiêu triển khai tiếp theo. Main đã có benchmark phiên bản cũ, nhưng kết quả hiện tại có lỗi ghép thời điểm và bù chuyển động nên chưa dùng để kết luận về sensor. Xem reports/CODE_REVIEW_T4.md; dự đoán lý thuyết không phải số đã đo. TV1 quản lý thay đổi và cập nhật đồng thời tài liệu/cấu hình trước khi chạy lại.
+Trạng thái ngày 06/10/2026, nhóm Ahihi: main 823da21 đã chạy lại đủ 45 điều kiện/4.500 mẫu; ghép thời điểm, chiều bù và quỹ đạo tròn đã được sửa. Wrapper ước lượng offset TV2 chạy được 28 trường hợp; đủ 5 PDF cá nhân đã có. Số đo hiện tại dùng được trong phạm vi mô phỏng, nhưng chưa đóng đối chứng nhiễu giữa offset và toàn bộ bàn giao. Xem reports/TV1_HANDOFF.md cho trạng thái mới; reports/CODE_REVIEW_T4.md là review lịch sử. Phần dưới chốt thiết kế và nêu riêng các khác biệt code còn cần sửa.
 
 ## 1. Problem và phạm vi
 
@@ -32,7 +32,7 @@ v × Δt là mô hình kiểm tra cho chuyển động thẳng đều. d × |ω|
 
 Mỗi mẫu là một phép thử độc lập: đặt một vật thể đứng yên trong world ở phía trước ego tại t_ref, rồi tính phép đo của chính vật thể đó tại t_true. Các mẫu liên tiếp có thể dùng vật thể khác nhau. Không mô tả chúng là một vật thể cố định xuyên suốt 10 giây.
 
-Giữ cùng mốc, quỹ đạo, vật thể và mẫu nhiễu khi so các offset/phương án. scenario_id: A=0, B=1, C=2; distance_id: 10=0, 20=1, 40=2. Seed tổ hợp = 42 + 100*scenario_id + distance_id; không cộng offset vào seed. Dùng numpy.random.default_rng(seed) sinh mảng nhiễu (100, 2) theo cùng thứ tự.
+Giữ cùng mốc, quỹ đạo, vật thể và mẫu nhiễu khi so các offset/phương án. scenario_id: A=0, B=1, C=2; distance_id: 10=0, 20=1, 40=2. Seed tổ hợp = 42 + 100*scenario_id + distance_id; không cộng offset vào seed. Dùng numpy.random.default_rng(seed) sinh mảng nhiễu (100, 2) theo cùng thứ tự. Code 1075108 hiện dùng seed phụ thuộc offset; TV3 cần sửa, TV5 chạy lại. Ba phương án trong từng tổ hợp hiện đã dùng cùng mẫu.
 
 Mốc đầu 0,2 s bảo đảm t_true >= 0 với offset tối đa. 100 mẫu thuộc cửa sổ dài 10 s, mẫu cuối ở 10,1 s. Quỹ đạo hỗ trợ toàn bộ thời điểm này.
 
@@ -82,7 +82,7 @@ yaw_old_hat = yaw_ref - ω*Δt
 P_ctrv = c_old_hat + R(yaw_old_hat) @ q
 ~~~
 
-A và C khớp giả định của CTRV; B có gia tốc nên có thể còn sai số. Đây là kết quả dự kiến cần đối chiếu bằng phép chạy.
+A và C khớp giả định của CTRV; B có gia tốc nên có thể còn sai số. Phép chạy hiện tại xác nhận A/C sau CTRV gần nhiễu. Không dùng kết quả này để khẳng định CTRV xử lý được mọi chuyển động có gia tốc.
 
 ## 6. Metric và ngưỡng
 
@@ -93,67 +93,68 @@ Với từng mẫu/phương án k: e_k[i] = ||P_k[i] - P_gt[i]||₂, mét. Báo 
 - E_post_ctrv: sau bù tịnh tiến + quay.
 - Baseline offset 0 có nhiễu nền; ba phương án phải trùng nhau trong sai số số học. Không yêu cầu baseline bằng 0 khi bật noise.
 - Tham chiếu theo mẫu: vdt[i] = v_ref[i]*Δt; lưu vdt_mean_m.
-- formula_dev_pct = 100 * mean(abs(e_pre[i] - vdt[i])) / mean(vdt[i]). Offset 0 ghi N/A (ô trống CSV). Đây là độ lệch khỏi mô hình đơn giản, không phải chất lượng detector; noise cũng ảnh hưởng đại lượng này.
+- Định nghĩa đã chốt: formula_dev_pct = 100 * mean(abs(e_pre[i] - vdt[i])) / mean(vdt[i]). Offset 0 ghi N/A (ô trống CSV). Đây là độ lệch khỏi mô hình đơn giản, không phải chất lượng detector; noise cũng ảnh hưởng đại lượng này.
+- Runner hiện lấy mean(100 * abs(e_pre[i] - vdt[i]) / vdt[i]); khác định nghĩa chốt khi v thay đổi (B). TV5 cần thống nhất về công thức trên và chạy lại. Báo cáo TV1 lấy mean/max sai số làm metric chính, chưa dùng formula_dev_pct của B để kết luận.
 
-Ngưỡng minh họa 0,5 m do nhóm đặt, chưa phải tiêu chuẩn an toàn. Mỗi phương án có exceed_rate = mean(e_k > 0.5), trong [0,1]. Khi nói vượt ngưỡng theo mean phải chỉ rõ E_mean > 0.5; không dùng lẫn mean, max và exceed_rate.
+Ngưỡng minh họa 0,5 m do nhóm đặt, chưa phải tiêu chuẩn an toàn. Yêu cầu bổ sung mỗi phương án có exceed_rate = mean(e_k > 0.5), trong [0,1]; runner chưa xuất các cột này. Cột over_threshold hiện chỉ là mean(linear) > 0,5 m. Khi nói vượt ngưỡng theo mean phải chỉ rõ E_mean > 0.5; không dùng lẫn mean, max và exceed_rate.
 
 ## 7. Failure case và engineering decision
 
-- Dự kiến C, d=40 m, offset 50–200 ms: linear còn lỗi do bỏ qua quay. Chỉ chốt offset/con số sau chạy.
-- Chọn một hàng kết quả cùng baseline tương ứng; ghi mean/max/exceed_rate, plot và log.
+- Failure đã chọn: C, d=40 m, offset=100 ms; E_pre mean=1,667546 m, linear mean=1,350500 m, CTRV mean=0,024821 m. Baseline cùng C/d40 có mean=0,025566 m cho cả ba phương án.
+- Ghi mean/max, plot và log; exceed_rate bổ sung sau TV5 cập nhật. Số trên thuộc bản 1075108, cần cập nhật sau khi sửa seed.
 - Cải tiến kiểm chứng trong lab: CTRV; so linear/CTRV trên cùng tổ hợp.
-- Quyết định dự kiến: kiểm tra timestamp và xét quay khi bù, đặc biệt với vật thể xa. Kết luận cuối bám số đo.
+- Quyết định trong phạm vi đã đo: xét quay khi bù bằng CTRV cho trường hợp rẽ nếu biết đúng offset/vận tốc/yaw rate. Kiểm tra timestamp và chất lượng trạng thái trước khi áp dụng ngoài mô phỏng.
 - Fallback cho vòng thử tiếp: đánh dấu dữ liệu chưa căn chỉnh khi đồng bộ hoặc ước lượng chuyển động không đủ tin cậy, tránh association cứng cho tới khi kiểm tra lại. Chưa triển khai tracker/fallback hoặc đo hiệu quả của chúng.
 - Bỏ quy tắc cố định 30 ms/0,2 rad/s vì chưa có cơ sở xác nhận.
 - Trade-off: giả định biết offset, chất lượng vận tốc/yaw rate, giới hạn khi có gia tốc, chi phí tính toán chưa đo. TV2 tìm nguồn cho PTP/trigger và giới hạn tích hợp trước khi dùng làm khuyến nghị.
 
-## 8. Giao diện bàn giao
+## 8. Giao diện bàn giao hiện tại
 
 TV3: run_simulation(scenario, offset_ms, distance_m, cfg) -> pandas.DataFrame.
 
 ~~~text
-scenario, frame, object_id, offset_ms, distance_m, noise_seed,
-t_ref_s, t_true_s, gt_x_world_m, gt_y_world_m,
-lidar_x_ego_m, lidar_y_ego_m,
-ego_x_ref_m, ego_y_ref_m, yaw_ref_rad, v_ref_mps, yaw_rate_ref_radps
+frame, t_ref, t_capture, x_true, y_true, x_lidar, y_lidar,
+x_ref, y_ref, yaw_ref, v_ref, yaw_rate_ref, x_pre, y_pre, e_pre
 ~~~
 
-object_id phân biệt phép thử độc lập; phải giữ cùng ID giữa offset của cùng scenario/distance/frame. GT chỉ dùng đánh giá, không đưa vào hàm bù.
+Cột vị trí dùng mét, thời gian dùng giây, yaw dùng radian, yaw_rate_ref dùng rad/s. Trong samples.csv, TV5 thêm scenario/offset_ms/distance_m và dự đoán/sai số. Khóa (scenario, distance_m, frame) phân biệt phép thử độc lập và giữ nguyên giữa offset. noise_seed cần được bổ sung để truy vết; không bắt buộc đổi tên toàn bộ cột. GT chỉ dùng đánh giá, không đưa vào hàm bù.
 
 TV4 cung cấp hai hàm:
 
 ~~~text
-compensate_linear(q_ego, ego_xy_ref, yaw_ref, v_ref, yaw_rate_ref, dt_s)
-compensate_ctrv(q_ego, ego_xy_ref, yaw_ref, v_ref, yaw_rate_ref, dt_s)
+compensate_linear(q_ego, v_ref, dt_s)
+compensate_ctrv(q_ego, v_ref, yaw_rate_ref, dt_s)
 ~~~
 
-q_ego và ego_xy_ref: NumPy arrays (N, 2); yaw_ref/v_ref/yaw_rate_ref: (N,); dt_s: scalar. Đầu ra (N, 2), vị trí world theo mét. Không mutate input. TV4 sở hữu logic bù; TV5 sở hữu metric chung.
+q_ego là NumPy array (2,) hoặc (N,2); v_ref/yaw_rate_ref/dt_s là scalar cho cùng phép biến đổi. Đầu ra giữ shape input, trong ego tại t_ref; runner gọi to_world với pose hiện tại rồi chấm điểm world. Không mutate input. Nhánh yaw rate gần 0 hiện dùng 1e-6 rad/s; config có 1e-8 nhưng chưa được đọc, cần TV4/TV5 thống nhất nếu dùng ngưỡng này ngoài ba kịch bản hiện tại.
 
-TV5 ghi samples.csv gồm cột mô phỏng và vị trí dự đoán/sai số từng phương án. results.csv có 45 hàng nếu đầy đủ:
+TV5 ghi samples.csv gồm cột mô phỏng và x_linear/y_linear/x_ctrv/y_ctrv/e_linear/e_ctrv. results.csv hiện có 45 hàng với schema:
 
 ~~~text
-scenario, offset_ms, distance_m, n_samples, noise_seed, v_ref_mean_mps,
-e_pre_mean_m, e_pre_max_m, e_post_linear_mean_m, e_post_linear_max_m,
-e_post_ctrv_mean_m, e_post_ctrv_max_m, vdt_mean_m, formula_dev_pct,
-pre_exceed_rate, linear_exceed_rate, ctrv_exceed_rate
+scenario, scenario_label, offset_ms, distance_m, samples, v_mps_mean,
+e_pre_mean, e_pre_max, e_post_mean, e_post_max,
+e_post_ctrv_mean, e_post_ctrv_max, vdt_m_mean, formula_dev_pct, over_threshold
 ~~~
+
+Yêu cầu bổ sung noise_seed và pre_exceed_rate/linear_exceed_rate/ctrv_exceed_rate; giữ các tên hiện tại để tránh làm hỏng plot/script đã tích hợp.
 
 ## 9. Đường chạy và bằng chứng
 
-Giao diện sẽ triển khai:
+Lệnh hiện tại đã chạy được:
 
 ~~~powershell
 python -m src.run_benchmark --config config_chot.yaml
 python -m src.run_benchmark --config config_chot.yaml --scenarios A C
+python -m src.plot --config config_chot.yaml
 ~~~
 
-Lệnh chưa chạy được cho tới khi TV3/TV4/TV5 hoàn thành code.
+Lệnh toàn bộ tạo 45 điều kiện/4.500 mẫu; A/C tạo 30 điều kiện/3.000 mẫu. Runner ghi đè results/, plot ghi đè ảnh cùng tên. Hướng dẫn môi trường: QUICKSTART.md.
 
 - results/samples.csv; results/results.csv; results/config_used.yaml; results/run_log.txt.
 - Log: thời điểm, lệnh thật, commit hash, working tree sạch/bẩn, seed, phiên bản Python/thư viện, số tổ hợp và runtime.
 - plots/timeline.png: phân biệt timestamp báo và thời điểm đo thật.
 - plots/error_vs_offset.png: ba phương án, baseline, mức lỗi, đơn vị, ngưỡng minh họa; tách scenario/distance rõ.
-- plots/alignment_turn.png: một phép thử C, d=40 m, offset=100 ms, vị trí đúng và ba dự đoán. Không gọi là quỹ đạo một vật thể xuyên suốt mẫu.
+- plots/alignment_turn.png: nhiều phép thử độc lập C, d=40 m, offset=100 ms, vị trí đúng và ba dự đoán. Không gọi là quỹ đạo một vật thể xuyên suốt mẫu.
 - Mỗi plot ghi “Dữ liệu tổng hợp”.
 
 ## 10. Phân công và mốc
@@ -185,8 +186,8 @@ Pitch: TV1 Problem 40 s; TV2 Method 50 s; TV3 Setup 50 s; TV5 Benchmark 60 s; TV
 
 Mỗi người tự nộp VLearn theo hướng dẫn lớp. Tên repo, định dạng PDF và tên file là quy ước nhóm; đối chiếu yêu cầu giảng viên nếu có hướng dẫn bổ sung.
 
-## 12. Chuyển đổi từ code hiện tại
+## 12. Trạng thái bàn giao cuối
 
-config.yaml giữ schema cũ để kiểm tra lại phiên bản hiện tại. config_chot.yaml là cấu hình mục tiêu theo thiết kế này. TV3/TV5 cập nhật code và CLI để đọc cấu hình mục tiêu trước khi thay cấu hình mặc định. Không chạy runner cũ với config_chot.yaml.
+config_chot.yaml đang được runner hiện tại đọc. config.yaml chỉ giữ schema lịch sử; muốn kiểm tra bản cũ cần checkout riêng commit cũ, không dùng nó với runner hiện tại.
 
-Tài liệu TV1 và config mục tiêu có thể tích hợp trước; nghiệm thu số đo theo reports/TV1_HANDOFF.md sau khi sửa code. CSV/plot cũ được giữ để truy vết lỗi, không dùng làm kết quả benchmark đạt yêu cầu.
+Báo cáo TV1 và nội dung pitch nằm tại reports/TV1_REPORT.md và reports/GROUP_PITCH.md. Chưa đóng lab cho tới khi sửa đối chứng seed, thống nhất metric/log, rà nội dung báo cáo từng người và tập pitch. Benchmark chính không phụ thuộc wrapper ước lượng offset TV2. Wrapper đã chạy lại trên main mới; nếu đưa vào pitch, ghi rõ pose lý tưởng, nhiễu camera bổ sung và chưa bù bằng offset ước lượng.
