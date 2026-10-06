@@ -1,6 +1,6 @@
 # Checklist bàn giao cuối — Lab T4
 
-Code kiểm tra: 1075108, ngày 05/10/2026. `[x]` chỉ việc đã kiểm tra/đã có artifact; quyền truy cập, trình bày và nộp bài cần từng người xác nhận. Chi tiết lỗi: [TV1_HANDOFF](reports/TV1_HANDOFF.md).
+Main kiểm tra: 823da21, ngày 06/10/2026, nhóm Ahihi. `[x]` chỉ việc đã kiểm tra/đã có artifact; quyền truy cập, trình bày và nộp bài cần từng người xác nhận. Chi tiết lỗi: [TV1_HANDOFF](reports/TV1_HANDOFF.md).
 
 ## TV1 — Thiết kế, tích hợp, báo cáo và Decision
 
@@ -19,11 +19,12 @@ Code kiểm tra: 1075108, ngày 05/10/2026. `[x]` chỉ việc đã kiểm tra/�
 ## TV2 — Nguồn, Method và mở rộng ước lượng offset
 
 - [x] Có reports/sources.md và code demo độc lập estimate_offset.py.
-- [ ] Sửa wrapper run_estimate_on_sim.py cho API hiện tại, hoặc bỏ wrapper khỏi bằng chứng tái hiện.
+- [x] Wrapper run_estimate_on_sim.py đã sửa API, chạy được và tái hiện CSV 28 trường hợp.
 - [ ] Rà phạm vi số paper, nguồn chính xác, input/output/metric/limitation; không suy từ target sang bắt buộc offline.
 - [ ] Nếu trình bày KITTI: ghi rõ chuyển động OXTS thật, điểm ảo, offset nhân tạo và khác biệt điều kiện so sánh.
 - [ ] Ghi phiên bản/dữ liệu/lệnh thực sự dùng cho phần mở rộng.
-- [ ] Điền thông tin cá nhân, hoàn thiện Method và báo cáo riêng; tập pitch và tự nộp.
+- [x] Có thông tin cá nhân và PDF riêng TV2 với Method/Benchmark/Failure/Decision.
+- [ ] Rà claim nguồn và diễn giải KITTI; tập pitch và tự nộp.
 
 ## TV3 — Mô phỏng
 
@@ -56,5 +57,6 @@ Code kiểm tra: 1075108, ngày 05/10/2026. `[x]` chỉ việc đã kiểm tra/�
 - [x] Demo chạy được với baseline và điều kiện lỗi, có số và bằng chứng.
 - [x] Có failure thật trong phạm vi mô phỏng và một cải tiến đã so sánh (CTRV).
 - [ ] Đóng các điểm đối chứng/metric/log trong handoff; số các tài liệu thống nhất.
-- [ ] Đủ thông tin 5 người và báo cáo riêng; cả nhóm pitch 3–5 phút.
+- [x] Đủ thông tin 5 người và 5 PDF báo cáo riêng trong repository.
+- [ ] Rà nội dung PDF từng người; ghép bản trình bày cuối và tập pitch 3–5 phút.
 - [ ] Mỗi người tự kiểm tra bài nộp VLearn. Không có bằng chứng nộp trong repository thì không đánh dấu đã nộp.

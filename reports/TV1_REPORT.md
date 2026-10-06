@@ -4,8 +4,9 @@
 - Tên nhóm: Ahihi; nhóm có đúng 5 thành viên.
 - Vai trò: chốt thiết kế, điều phối tích hợp, kiểm tra bằng chứng, Problem và Engineering decision.
 - Repository: https://github.com/Chika1357/K4-Track4-Day04-Ahihi-Sensor-Reality-Sprint
-- Code benchmark đã đối chiếu: `107510809f3d8bb988eb53b76310a72603593226`.
+- Main đã đối chiếu: `823da210463fb82ba1ef190c75bdbe2fbfd91892`, ngày 06/10/2026.
 - Phạm vi số dưới đây: bản hiện tại đã chạy lại, chưa phải bộ số cuối sau sửa đối chứng seed. Trạng thái bàn giao: [TV1_HANDOFF](TV1_HANDOFF.md).
+- PDF tóm tắt một trang cùng nội dung: [TV1_Nguyen_Tuan_Thanh_2A202602640.pdf](TV1_Nguyen_Tuan_Thanh_2A202602640.pdf).
 
 ## 1. Problem
 
@@ -19,7 +20,7 @@ Nguồn chính: [Park và cộng sự, Spatiotemporal Camera-LiDAR Calibration, 
 
 Nhóm chọn đường chạy tối thiểu: mô phỏng chuyển động và bù với **offset biết đúng**, không tái hiện tối ưu 3D của paper. Input gồm điểm LiDAR trong ego tại lúc đo, pose/vận tốc/yaw rate hiện tại và Δt. Output là vị trí world trước bù, sau linear và sau CTRV. Linear trừ v_refΔt dọc trục trước; CTRV bù cung chuyển động rồi quay về ego tại t_ref. Ground truth và pose thật quá khứ chỉ sinh dữ liệu/chấm điểm, không đưa vào hàm bù.
 
-Phần TV2 ước lượng offset/KITTI là mở rộng, không dùng làm bằng chứng cho số chính trong báo cáo này. Wrapper ước lượng offset tích hợp đang cần sửa API. [sources.md](sources.md) do TV2 quản lý; không so trực tiếp số time lag của paper với sai số vị trí của nhóm.
+Phần TV2 ước lượng offset/KITTI là mở rộng, không dùng làm bằng chứng cho số chính trong báo cáo này. Wrapper đã chạy lại đủ 28 trường hợp: A/B sai số tối đa 2 ms, C tối đa 3 ms; D đứng yên được đánh dấu không quan sát được. Phần này thêm nhiễu camera và dùng pose lý tưởng; benchmark bù chính chưa dùng offset ước lượng. [sources.md](sources.md) do TV2 quản lý; không so trực tiếp số time lag của paper với sai số vị trí của nhóm.
 
 ## 3. Benchmark
 
@@ -43,7 +44,7 @@ python -m src.run_benchmark --config config_chot.yaml
 python -m src.plot --config config_chot.yaml
 ~~~
 
-Cấu hình: [config_chot.yaml](../config_chot.yaml), bản lưu lần chạy: [config_used.yaml](../results/config_used.yaml). Bằng chứng: [results.csv](../results/results.csv), [samples.csv](../results/samples.csv), [run_log.txt](../results/run_log.txt), [error_vs_offset.png](../plots/error_vs_offset.png), [alignment_turn.png](../plots/alignment_turn.png). Môi trường TV1 đối chiếu: Python 3.11.9, NumPy 1.26.4, pandas 2.2.3, matplotlib 3.10.1, PyYAML 6.0.2; hash và giới hạn provenance tại [TV1_REVIEW](TV1_REVIEW.md).
+Cấu hình: [config_chot.yaml](../config_chot.yaml), bản lưu lần chạy: [config_used.yaml](../results/config_used.yaml). Bằng chứng: [results.csv](../results/results.csv), [samples.csv](../results/samples.csv), [run_log.txt](../results/run_log.txt), [error_vs_offset.png](../plots/error_vs_offset.png), [alignment_turn.png](../plots/alignment_turn.png). Môi trường TV1 đối chiếu: Python 3.11.9, NumPy 1.26.4, pandas 2.2.3, matplotlib 3.10.1, PyYAML 6.0.2; hash và giới hạn provenance tại [MAIN_REVIEW_2026-10-06](MAIN_REVIEW_2026-10-06.md).
 
 ## 4. Failure case
 
@@ -51,7 +52,7 @@ Failure chọn: C, d=40 m, Δt=100 ms. Linear có mean 1,350500 m và max 1,3859
 
 Mean linear vượt ngưỡng **minh họa** 0,5 m do nhóm đặt. CTRV có mean 0,024821 m, max 0,056044 m. Chưa xuất exceed_rate từng phương án; không gọi over_threshold là tỷ lệ lỗi. Điểm lệch có thể gây association sai với bbox là suy luận kỹ thuật, chưa được đo bằng detector/tracker.
 
-Giới hạn: dữ liệu 2D tổng hợp; vật thể chỉ tĩnh trong từng phép thử; biết đúng offset/trạng thái; A/C khớp giả định mô hình bù. Chưa đo offset/vận tốc/yaw rate không chính xác, vật thể chuyển động, scan distortion, calibration drift, mAP hay latency đầu-cuối. Nhiễu giữa offset cần đồng nhất; log TV5 cũ ghi commit/môi trường khác nên không đủ chứng minh working tree đã sạch khi chạy.
+Giới hạn: dữ liệu 2D tổng hợp; vật thể chỉ tĩnh trong từng phép thử; biết đúng offset/trạng thái; A/C khớp giả định mô hình bù. Chưa đo offset/vận tốc/yaw rate không chính xác, vật thể chuyển động, scan distortion, calibration drift, mAP hay latency đầu-cuối. Nhiễu giữa offset cần đồng nhất. Log TV5 mới ghi revision có code core khớp main; vẫn thiếu working-tree state/runtime và dùng môi trường khác bản requirements TV1 đã đối chiếu.
 
 ## 5. Engineering decision
 

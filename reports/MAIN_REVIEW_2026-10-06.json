@@ -1,0 +1,120 @@
+{
+  "reviewed_at_utc": "2026-10-06T03:40:18+00:00",
+  "main_commit": "823da210463fb82ba1ef190c75bdbe2fbfd91892",
+  "environment": {
+    "python": "3.11.9",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "matplotlib": "3.10.1",
+    "PyYAML": "6.0.2"
+  },
+  "isolated_archive_without_git_metadata": true,
+  "workspace_results_not_overwritten": true,
+  "full_conditions": 45,
+  "full_samples": 4500,
+  "max_difference_vs_committed_results": 0.0,
+  "baseline_methods_equal": true,
+  "means_and_maxima_match_samples": true,
+  "offset_wrapper_cases": 28,
+  "offset_results_match_committed": true,
+  "offset_error_ms": {
+    "A": {
+      "mean": 0.571429,
+      "max": 2.0
+    },
+    "B": {
+      "mean": 0.571429,
+      "max": 2.0
+    },
+    "C": {
+      "mean": 0.714286,
+      "max": 3.0
+    },
+    "D": {
+      "mean": 100.142857,
+      "max": 200.0
+    }
+  },
+  "static_offset_marked_unobservable": true,
+  "common_noise_across_offsets": false,
+  "missing_exceed_rate_columns": [
+    "pre_exceed_rate",
+    "linear_exceed_rate",
+    "ctrv_exceed_rate"
+  ],
+  "max_formula_deviation_difference_B_percentage_points": 0.2230165265225934,
+  "committed_log_revision": "979355addfd972ada1466d5b493f752624c16d2a",
+  "core_code_matches_log_revision": true,
+  "personal_pdf_files": [
+    "reports/TV1_Nguyen_Tuan_Thanh_2A202602640.pdf",
+    "reports/TV2_Pham_Van_Hoang_Anh_Tu_2A202602507.pdf",
+    "reports/TV3_Pham_Hoang_Anh_Khoi_2A202602404.pdf",
+    "reports/TV4_Bui_Dang_Khoa_2A202602617.pdf",
+    "reports/TV5_Hoang_Trung_Anh_2A202602521.pdf"
+  ],
+  "runs": [
+    {
+      "argv": [
+        "C:\\Users\\PC\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+        "-X",
+        "utf8",
+        "-m",
+        "src.run_benchmark",
+        "--config",
+        "config_chot.yaml"
+      ],
+      "returncode": 0,
+      "elapsed_s": 1.544,
+      "stdout": "Completed 45 conditions; results/results.csv and results/samples.csv were written."
+    },
+    {
+      "argv": [
+        "C:\\Users\\PC\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+        "-X",
+        "utf8",
+        "-m",
+        "src.plot",
+        "--config",
+        "config_chot.yaml"
+      ],
+      "returncode": 0,
+      "elapsed_s": 2.573,
+      "stdout": "Wrote timeline.png, error_vs_offset.png, and alignment_turn.png to plots"
+    },
+    {
+      "argv": [
+        "C:\\Users\\PC\\AppData\\Local\\Programs\\Python\\Python311\\python.exe",
+        "-X",
+        "utf8",
+        "-m",
+        "src.run_estimate_on_sim",
+        "--config",
+        "config_chot.yaml"
+      ],
+      "returncode": 0,
+      "elapsed_s": 1.301,
+      "stdout": "scenario  true_offset_ms  est_offset_ms  abs_error_ms  observable  sharpness\n       A               0            0.0           0.0        True      37.94\n       A              50           50.0           0.0        True      30.83\n       A              73           75.0           2.0        True      26.25\n       A             100          100.0           0.0        True      20.64\n       A             128          130.0           2.0        True      19.47\n       A             150          150.0           0.0        True      21.42\n       A             200          200.0           0.0        True      29.56\n       B               0            0.0           0.0        True      45.60\n       B              50           50.0           0.0        True      36.87\n       B              73           75.0           2.0        True      28.26\n       B             100          100.0           0.0        True      27.99\n       B             128          130.0           2.0        True      21.57\n       B             150          150.0           0.0        True      30.14\n       B             200          200.0           0.0        True      37.97\n       C               0            0.0           0.0        True      23.71\n       C              50           50.0           0.0        True      18.44\n       C              73           75.0           2.0        True      14.58\n       C             100          100.0           0.0        True      12.15\n       C             128          125.0           3.0        True      10.68\n       C             150          150.0           0.0        True      12.61\n       C             200          200.0           0.0        True      17.90\n       D               0            0.0           0.0       False       0.00\n       D              50            0.0          50.0       False       0.00\n       D              73            0.0          73.0       False       0.00\n       D             100            0.0         100.0       False       0.00\n       D             128            0.0         128.0       False       0.00\n       D             150            0.0         150.0       False       0.00\n       D             200            0.0         200.0       False       0.00\n\nSai số ước lượng (ms) theo kịch bản:\n            mean    max\nscenario               \nA           0.57    2.0\nB           0.57    2.0\nC           0.71    3.0\nD         100.14  200.0"
+    }
+  ],
+  "artifact_sha256": {
+    "results/results.csv": "61f18b920b83ebd1e58f4162702d0cb6fcd4533350a8a36c140de527d764006c",
+    "results/samples.csv": "2911c97cf5b885560cbe84a33301f7328f9df9ce19fd9e7db857b9cebf98834a",
+    "results/run_log.txt": "b8894a9f486a2104448d0cb995200562475c4fa715a3d45a3c622d6c3e179103",
+    "results/offset/offset_on_sim.csv": "958d9faf2a2d7d5c6e60be67786b48750448cbba0648fb68cf316c8a1415797b"
+  },
+  "pdf_review": {
+    "tv1_updated_on_thanh_dev": true,
+    "tv1_pages": 1,
+    "tv1_rendered_with_poppler": true,
+    "tv1_visual_review_passed": true,
+    "tv1_sha256": "88889a73d31676bddefa8453a5693a97c553298060e63fc957b6c28e0973b974",
+    "tv2_pages": 3,
+    "tv2_first_page_rendered_and_reviewed": true,
+    "other_personal_pdf_text_extracted": true,
+    "remaining_pdf_content_review": [
+      "TV3",
+      "TV4",
+      "TV5"
+    ]
+  }
+}

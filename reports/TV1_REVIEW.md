@@ -1,5 +1,7 @@
 # TV1 — Bằng chứng đối chiếu benchmark hiện tại
 
+Đây là bản kiểm tra ngày 05/10/2026. Kiểm tra main mới ngày 06/10/2026 tại [MAIN_REVIEW_2026-10-06](MAIN_REVIEW_2026-10-06.md); wrapper TV2 và log revision đã được cập nhật sau bản này.
+
 Code được đối chiếu: `107510809f3d8bb988eb53b76310a72603593226`. TV1 chạy trong bản sao tạm từ source archive của commit này, dùng cùng giá trị config; không ghi đè CSV/log/plot đã lưu trong repository. Đây là lần kiểm tra của TV1, tách biệt với run log TV5.
 
 ## Phạm vi kiểm tra

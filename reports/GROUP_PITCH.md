@@ -1,6 +1,6 @@
 # Pitch chung T4 — nội dung 6 slide
 
-Bản nội dung để ghép slide/trình bày, chưa phải file PowerPoint hay bằng chứng đã tập. Code benchmark: 1075108. Số lấy từ results/results.csv hiện tại, cần cập nhật đồng thời sau sửa seed. Thời lượng nói dự kiến 255 s (4 phút 15 giây), còn khoảng 30 s chuyển phần.
+Bản nội dung nhóm Ahihi để ghép slide/trình bày, chưa phải file PowerPoint hay bằng chứng đã tập. Main đã kiểm tra: 823da21. Số lấy từ results/results.csv hiện tại, cần cập nhật đồng thời sau sửa seed. Thời lượng nói dự kiến 255 s (4 phút 15 giây), còn khoảng 30 s chuyển phần.
 
 ## Slide 1 — Problem · TV1 · 35 s
 
@@ -82,7 +82,7 @@ Bản nội dung để ghép slide/trình bày, chưa phải file PowerPoint hay
 | Có biết trước đáp án để bù không? | Biết offset/state theo giả định; GT/pose quá khứ thật không vào hàm bù |
 | Đây có phải fusion camera–LiDAR thật? | Mô phỏng căn chỉnh điểm 2D, chưa có ảnh/bbox/scan thực tế |
 | Có chứng minh an toàn hoặc cải thiện detector không? | Chưa; metric vị trí và ngưỡng nhóm đặt không chứng minh mAP/an toàn |
-| Code còn hạn chế nào cần sửa? | Nhiễu giữa offset, metric/log và wrapper TV2; xem TV1_HANDOFF |
+| Code còn hạn chế nào cần sửa? | Nhiễu giữa offset, metric/log và nội dung một số báo cáo; wrapper TV2 đã chạy được; xem TV1_HANDOFF |
 | Tại sao không kết luận ngưỡng 30 ms? | Nhóm chưa đo miền ngưỡng/fallback hay tỷ lệ association sai |
 
 Trước nộp: đóng các mục trong TV1_HANDOFF, cập nhật số chung, điền thông tin cá nhân, xuất định dạng lớp yêu cầu, kiểm tra ảnh/đơn vị/nguồn và tập một lượt có bấm giờ. Mỗi người tự nộp báo cáo riêng.

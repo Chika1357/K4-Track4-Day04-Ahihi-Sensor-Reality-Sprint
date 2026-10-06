@@ -42,6 +42,12 @@ Kỳ vọng: 30 điều kiện, 3.000 mẫu. Sau lệnh này CSV chỉ có A/C; 
 
 ## 4. Phần mở rộng TV2
 
-`src/estimate_offset.py` có demo độc lập; nó không phải benchmark bù chính. `src/run_estimate_on_sim.py` đang cần TV2 cập nhật API với `src/simulate.py`; chưa dùng kết quả cũ của wrapper làm bằng chứng tái hiện trên phiên bản hiện tại. KITTI là nhánh mở rộng dùng chuyển động thật với điểm ảo/offset nhân tạo, không thay thế benchmark chính.
+Wrapper TV2 đã sửa API và chạy được trên main 823da21:
+
+~~~powershell
+.\.venv\Scripts\python.exe -m src.run_estimate_on_sim --config config_chot.yaml
+~~~
+
+Lệnh ghi `results/offset/offset_on_sim.csv`, gồm 28 trường hợp A/B/C/D, có hai offset lệch lưới 73/128 ms. Phần này thêm nhiễu camera 0,10 m và dùng pose lý tưởng; không đưa offset ước lượng vào benchmark bù chính. Khi đứng yên D, giá trị trả 0 ms được đánh dấu không quan sát được, không coi là ước lượng đúng. KITTI là nhánh mở rộng dùng chuyển động thật với điểm ảo/offset nhân tạo, không thay thế benchmark chính.
 
 Trạng thái nghiệm thu và các lỗi còn mở: [TV1_HANDOFF](reports/TV1_HANDOFF.md). Báo cáo hiện tại: [TV1_REPORT](reports/TV1_REPORT.md).

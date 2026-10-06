@@ -1,6 +1,6 @@
 # CHỐT LAB T4 — Sai số căn chỉnh vị trí do lệch timestamp
 
-Trạng thái ngày 05/10/2026: benchmark chính tại commit 1075108 đã chạy lại đủ 45 điều kiện/4.500 mẫu; ghép thời điểm, chiều bù và quỹ đạo tròn đã được sửa. Số đo hiện tại dùng được trong phạm vi mô phỏng, nhưng chưa đóng đối chứng nhiễu giữa offset và toàn bộ bàn giao. Xem reports/TV1_HANDOFF.md cho trạng thái mới; reports/CODE_REVIEW_T4.md là review lịch sử. Phần dưới chốt thiết kế và nêu riêng các khác biệt code còn cần sửa.
+Trạng thái ngày 06/10/2026, nhóm Ahihi: main 823da21 đã chạy lại đủ 45 điều kiện/4.500 mẫu; ghép thời điểm, chiều bù và quỹ đạo tròn đã được sửa. Wrapper ước lượng offset TV2 chạy được 28 trường hợp; đủ 5 PDF cá nhân đã có. Số đo hiện tại dùng được trong phạm vi mô phỏng, nhưng chưa đóng đối chứng nhiễu giữa offset và toàn bộ bàn giao. Xem reports/TV1_HANDOFF.md cho trạng thái mới; reports/CODE_REVIEW_T4.md là review lịch sử. Phần dưới chốt thiết kế và nêu riêng các khác biệt code còn cần sửa.
 
 ## 1. Problem và phạm vi
 
@@ -190,4 +190,4 @@ Mỗi người tự nộp VLearn theo hướng dẫn lớp. Tên repo, định d
 
 config_chot.yaml đang được runner hiện tại đọc. config.yaml chỉ giữ schema lịch sử; muốn kiểm tra bản cũ cần checkout riêng commit cũ, không dùng nó với runner hiện tại.
 
-Báo cáo TV1 và nội dung pitch nằm tại reports/TV1_REPORT.md và reports/GROUP_PITCH.md. Chưa đóng lab cho tới khi sửa đối chứng seed, thống nhất metric/log, cập nhật báo cáo từng người và tập pitch. Benchmark chính không phụ thuộc wrapper ước lượng offset TV2; chỉ đưa phần mở rộng vào pitch khi wrapper chạy lại được hoặc ghi rõ dùng demo độc lập.
+Báo cáo TV1 và nội dung pitch nằm tại reports/TV1_REPORT.md và reports/GROUP_PITCH.md. Chưa đóng lab cho tới khi sửa đối chứng seed, thống nhất metric/log, rà nội dung báo cáo từng người và tập pitch. Benchmark chính không phụ thuộc wrapper ước lượng offset TV2. Wrapper đã chạy lại trên main mới; nếu đưa vào pitch, ghi rõ pose lý tưởng, nhiễu camera bổ sung và chưa bù bằng offset ước lượng.

@@ -2,7 +2,7 @@
 
 Nhóm đo sai số căn chỉnh vị trí khi LiDAR đo tại `t_capture = t_ref − Δt` nhưng phép biến đổi dùng pose tại `t_ref`. Dữ liệu tổng hợp 2D mô phỏng một rủi ro của camera–LiDAR; camera là mốc thời gian, không có ảnh/bbox hay detector trong phép thử.
 
-Benchmark chính ở commit `107510809f3d8bb988eb53b76310a72603593226` đã được chạy lại: **45 điều kiện, 4.500 mẫu**, CSV tổng hợp khớp bản lưu. Vẫn còn các mục đối chứng và bàn giao cần đóng trước bản nộp cuối; xem [TV1_HANDOFF](reports/TV1_HANDOFF.md).
+Nhóm **Ahihi**. Main mới nhất đã kiểm tra: `823da210463fb82ba1ef190c75bdbe2fbfd91892`. Benchmark chính chạy lại **45 điều kiện, 4.500 mẫu**, CSV tổng hợp khớp bản lưu. Wrapper ước lượng offset TV2 chạy được 28 trường hợp; đủ 5 PDF cá nhân đã có trong reports/. Vẫn còn các mục đối chứng và bàn giao cần đóng trước bản nộp cuối; xem [TV1_HANDOFF](reports/TV1_HANDOFF.md).
 
 ## Chạy
 
@@ -55,10 +55,10 @@ Vòng thử tiếp: thêm sai số ước lượng offset/vận tốc/yaw rate v
 | `plots/timeline.png` | Mốc tham chiếu và thời điểm đo cũ |
 | `plots/error_vs_offset.png` | Mean theo offset, d=20/40 m |
 | `plots/alignment_turn.png` | Nhiều phép thử độc lập C/d40/100 ms |
-| [TV1_REVIEW](reports/TV1_REVIEW.md) | Commit, môi trường và hash bằng chứng được TV1 đối chiếu |
+| [MAIN_REVIEW_2026-10-06](reports/MAIN_REVIEW_2026-10-06.md) | Kiểm tra main mới, số đo, báo cáo và các điểm còn mở |
 | [TV1_REPORT](reports/TV1_REPORT.md) | Báo cáo TV1 đủ năm mục |
 | [GROUP_PITCH](reports/GROUP_PITCH.md) | Nội dung 6 slide, lời nói và phân chia 3–5 phút |
 
-Nguồn chính: [Park và cộng sự, RA-L 2020, arXiv v1](https://arxiv.org/abs/2001.06175v1). Benchmark nhóm là mô hình giản lược, không chạy thuật toán paper. Chi tiết nguồn do TV2 quản lý tại [sources](reports/sources.md); trạng thái script mở rộng tại [handoff](reports/TV1_HANDOFF.md).
+Nguồn chính: [Park và cộng sự, RA-L 2020, arXiv v1](https://arxiv.org/abs/2001.06175v1). Benchmark nhóm là mô hình giản lược, không chạy thuật toán paper. Chi tiết nguồn do TV2 quản lý tại [sources](reports/sources.md). Ước lượng offset là phần mở rộng độc lập: `python -m src.run_estimate_on_sim --config config_chot.yaml`; benchmark bù chính vẫn dùng offset biết đúng.
 
 Nhóm có đúng 5 thành viên; mỗi người tự viết và nộp báo cáo riêng trên VLearn. [TEAMMATES](TEAMMATES.md) ghi thông tin và nhánh, [CHECKLIST](CHECKLIST_TUNG_NGUOI_T4.md) ghi phần việc còn lại.

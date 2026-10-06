@@ -1,6 +1,6 @@
 # TV1 — Chốt bàn giao và nghiệm thu T4
 
-Cập nhật 05/10/2026, code benchmark đã kiểm tra: `107510809f3d8bb988eb53b76310a72603593226`. Nhánh TV1: `thanh_dev`, tích hợp qua PR vào `main`. Đây là bảng điều phối hiện tại; review code cũ được giữ tại CODE_REVIEW_T4.md để truy vết.
+Cập nhật 06/10/2026, nhóm Ahihi, main đã kiểm tra: `823da210463fb82ba1ef190c75bdbe2fbfd91892`. Nhánh TV1: `thanh_dev`, tích hợp qua PR vào `main`. Đây là bảng điều phối hiện tại; review code cũ được giữ tại CODE_REVIEW_T4.md để truy vết.
 
 ## 1. Phần đã xác nhận
 
@@ -11,6 +11,9 @@ Cập nhật 05/10/2026, code benchmark đã kiểm tra: `107510809f3d8bb988eb53
 - [x] Chọn failure C/d40/100 ms cùng baseline C/d40/0 ms.
 - [x] TV1 cập nhật README/Quickstart/đặc tả/giao diện thực tế, bảng nhánh và requirements theo môi trường đã đối chiếu.
 - [x] TV1 viết báo cáo đủ năm mục và nội dung pitch chung 6 slide, tách quan sát/nguồn/suy luận.
+- [x] Wrapper TV2 chạy lại 28 trường hợp, CSV khớp bản lưu; D đứng yên đánh dấu không quan sát được.
+- [x] Có thông tin cả 5 thành viên, tên nhóm Ahihi và đủ 5 PDF cá nhân trong reports/.
+- [x] Log TV5 mới ghi revision 979355a; simulate/compensate/runner tại revision đó khớp main mới.
 
 ## 2. Các việc cần giao trước bản kết quả cuối
 
@@ -18,20 +21,18 @@ Cập nhật 05/10/2026, code benchmark đã kiểm tra: `107510809f3d8bb988eb53
 |---|---|---|
 | TV3 | Seed hiện có offset nên noise thay đổi giữa điều kiện. Chuyển sang `42 + 100*scenario_id + distance_id` theo CHOT; giữ thứ tự noise | Cùng scenario/d/frame có cùng vector noise ở cả 5 offset; lưu seed thực tế |
 | TV5 | Chạy lại sau sửa seed; thêm exceed_rate từng phương án và thống nhất formula_dev_pct theo CHOT | Có 45 hàng/4.500 mẫu; mean/max/exceed_rate từ cùng samples; baseline formula_dev_pct trống |
-| TV5 | Ghi command đầy đủ, commit, working-tree sạch/bẩn, runtime, thư viện và seed thực tế | Run log gắn với chính source/config đã dùng; phân biệt seed gốc và seed tổ hợp |
+| TV5 | Log đã cải thiện revision; còn command đầy đủ, working-tree sạch/bẩn, runtime, thư viện và seed thực tế | Run log gắn với chính source/config đã dùng; phân biệt seed gốc và seed tổ hợp |
 | TV5 | Đồng bộ TV5_SLIDE4.md/TV5_REPORT.md/PDF với CSV cuối; một số giá trị B/C đang cũ | Đối chiếu tất cả số theo khóa scenario/d/offset, ghi đơn vị và baseline |
 | TV4 + TV5 | Config epsilon là 1e-8, code dùng 1e-6. Chốt một nguồn cấu hình nếu duy trì tham số này | Đặc tả/config/code nhất quán; không thay đổi tùy ý giữa điều kiện |
-| TV2 | Sửa run_estimate_on_sim.py: API mới cần cfg, trả DataFrame và không có sim.pose/ObjectTrajectorySimulator | Wrapper chạy lại được với đúng API và ghi simulator/version; hoặc loại wrapper khỏi phạm vi pitch |
 | TV2 | Rà nguồn/slide: giới hạn Bảng IV của Park, bỏ suy luận target ⇒ offline; diễn giải KITTI là OXTS thật + điểm ảo/offset nhân tạo | Không dùng số paper làm số tự đo; không gọi chênh timestamp là lỗi clock đã chứng minh; mọi claim có nguồn/phạm vi |
-| TV4 + TV5 | Báo cáo hiện có quy tắc fallback 30 ms/0,2 rad/s chưa được thử | Xóa hoặc ghi là giả thuyết cần validation; thống nhất với Decision của TV1 |
-| TV1 + TV2 | TV1 đã điền Nguyễn Tuấn Thành — 2A202602640; còn thông tin TV2 và tên nhóm chính thức | TEAMMATES và báo cáo không còn ô thông tin cần xác nhận |
-| Cả nhóm | Mỗi người viết đủ năm mục và tập pitch | Đủ 5 bản; mỗi người tự nộp VLearn; trình bày 3–5 phút, mở được CSV/log/plot |
+| TV3 + TV4 + TV5 | PDF hiện có quy tắc fallback 30 ms/0,2 rad/s chưa được thử; Method thiếu link paper/commit và giới hạn cụ thể | Xóa hoặc ghi là giả thuyết cần validation; bổ sung nguồn, giả định và phạm vi; thống nhất với Decision của TV1 |
+| Cả nhóm | Đã có 5 PDF; cần rà nội dung, xuất slide cuối và tập pitch | Mỗi người hiểu/nộp bản riêng; trình bày 3–5 phút, mở được CSV/log/plot |
 
 Đây là đầu việc để TV1 trao đổi với nhóm; chưa gửi bình luận GitHub hoặc tin nhắn cho thành viên.
 
 ## 3. Bảng failure hiện tại để ghép báo cáo
 
-Nguồn: results/results.csv tại code 1075108. Các số cần thay đồng thời sau chạy lại seed.
+Nguồn: results/results.csv, chạy lại trên main 823da21 vẫn khớp số. Các số cần thay đồng thời sau chạy lại seed.
 
 | C, d=40 m | Trước bù mean/max (m) | Linear mean/max (m) | CTRV mean/max (m) |
 |---|---:|---:|---:|
@@ -45,7 +46,7 @@ Quan sát: CTRV gần nhiễu trong chuyển động rẽ đều và offset/tr�
 1. TV3 sửa seed; TV4/TV5 thống nhất epsilon, TV5 đóng metric/log.
 2. Chạy baseline rồi toàn bộ; lưu config/source/versions và CSV/log/plot cùng lần chạy.
 3. TV1 kiểm tra mean/max từ samples, baseline và failure; cập nhật README, TV1_REPORT và GROUP_PITCH cùng số mới. TV5 cập nhật báo cáo/slide/PDF của mình.
-4. TV2 quyết định phần mở rộng nào tái hiện được. Benchmark chính giả định offset biết đúng; không phụ thuộc kết quả wrapper.
+4. Wrapper TV2 đã tái hiện được; chỉ dùng trong pitch với giả định pose lý tưởng/nhiễu camera và giới hạn lưới. KITTI chưa chạy lại do thiếu dữ liệu đầu vào thật. Benchmark chính vẫn giả định offset biết đúng.
 5. TV1 ghép bản trình bày, kiểm tra đủ 5 báo cáo; cả nhóm tập và tự nộp.
 
 ## 5. Chia pitch
