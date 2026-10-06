@@ -1,59 +1,73 @@
-"""
-TV2: chạy estimate_offset trên mô phỏng của nhóm.
-Ưu tiên simulate.py của TV3 nếu đã có run_simulation (giao diện đã chốt);
-nếu chưa có thì dùng offset_sim.py (bản cùng quy ước, do TV2 viết).
-Chạy (từ thư mục gốc repo): python src/run_estimate_on_sim.py
+"""TV2: ước lượng time offset camera-LiDAR trên mô phỏng chung của nhóm.
+
+Dùng đúng src/simulate.py (run_simulation, vehicle_state) và config_chot.yaml.
+Camera đo vị trí vật thể trong hệ world với nhiễu sigma_cam (mặc định 0,10 m).
+Kịch bản D = xe đứng yên (speed 0) để kiểm tra limitation của Park et al. (RA-L 2020):
+time lag không quan sát được khi hệ không chuyển động.
+
+Chạy từ thư mục gốc repo:
+    python -m src.run_estimate_on_sim --config config_chot.yaml
 Kết quả: results/offset/offset_on_sim.csv
 """
-import os
-import sys
+
+from __future__ import annotations
+
+import argparse
+import copy
+from pathlib import Path
+
+import numpy as np
 import pandas as pd
+import yaml
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from src.estimate_offset import estimate_offset
+from src.simulate import run_simulation, vehicle_state
 
-try:
-    import simulate as sim_mod
-    if not hasattr(sim_mod, "run_simulation"):
-        raise ImportError
-    SOURCE = "simulate.py (TV3)"
-except ImportError:
-    import offset_sim as sim_mod
-    SOURCE = "offset_sim.py (TV2)"
-
-from estimate_offset import estimate_offset
-
-OFFSETS = [0, 50, 73, 100, 128, 150, 200]   # 73, 128 lệch lưới 5 ms để đo sai số thật
-D = 20.0
-OUT = "results/offset"
+OFFSETS_MS = [0, 50, 73, 100, 128, 150, 200]   # 73 và 128 nằm lệch lưới 5 ms
+DISTANCE_M = 20
+SIGMA_CAM_M = 0.10
 
 
-def estimate(df, sim):
-    return estimate_offset(sim.pose, df.t_report.values,
-                           df[["lidar_ex", "lidar_ey"]].values, df[["cam_x", "cam_y"]].values)
+def make_pose_fn(scenario_cfg):
+    def pose_fn(t):
+        states = [vehicle_state(float(ti), scenario_cfg) for ti in np.atleast_1d(t)]
+        arr = np.array([s[:3] for s in states])
+        return arr[:, 0], arr[:, 1], arr[:, 2]
+    return pose_fn
 
 
-def main():
-    os.makedirs(OUT, exist_ok=True)
-    print(f"Dùng mô phỏng: {SOURCE}")
+def run(config_path: str) -> pd.DataFrame:
+    with open(config_path, encoding="utf-8") as f:
+        cfg = yaml.safe_load(f)
+    rng = np.random.default_rng(int(cfg["benchmark"]["seed"]) + 7)
+
+    # D: xe đứng yên, chạy qua khe "A" của run_simulation để giữ nguyên quy ước seed
+    cfg_static = copy.deepcopy(cfg)
+    cfg_static["scenarios"]["A"] = {"type": "constant_velocity", "speed_mps": 0.0}
+    cases = [("A", "A", cfg), ("B", "B", cfg), ("C", "C", cfg), ("D", "A", cfg_static)]
+
     rows = []
-    for sc in ["A", "B", "C", "D"]:
-        for off in OFFSETS:
-            if sc == "D":   # xe đứng yên - kiểm tra limitation của nguồn N1
-                sim = sim_mod.ObjectTrajectorySimulator(
-                    sim_mod.SimulationConfig(velocity_ms=0.0, object_distance_m=D))
-                df = sim.simulate(off)
-            else:
-                df, sim = sim_mod.run_simulation(sc, off, D)
-            r = estimate(df, sim)
-            rows.append(dict(scenario=sc, true_offset_ms=off, est_offset_ms=r["offset_ms"],
-                             abs_error_ms=abs(r["offset_ms"] - off), observable=r["observable"],
-                             sharpness=round(r["sharpness"], 2), sim_source=SOURCE))
+    for label, slot, c in cases:
+        pose_fn = make_pose_fn(c["scenarios"][slot])
+        for off in OFFSETS_MS:
+            df = run_simulation(slot, off, DISTANCE_M, c)
+            cam = df[["x_true", "y_true"]].to_numpy() + rng.normal(0, SIGMA_CAM_M, (len(df), 2))
+            r = estimate_offset(pose_fn, df["t_ref"].to_numpy(),
+                                df[["x_lidar", "y_lidar"]].to_numpy(), cam)
+            rows.append(dict(scenario=label, true_offset_ms=off, est_offset_ms=r["offset_ms"],
+                             abs_error_ms=abs(r["offset_ms"] - off),
+                             observable=r["observable"], sharpness=round(r["sharpness"], 2)))
     out = pd.DataFrame(rows)
-    out.to_csv(os.path.join(OUT, "offset_on_sim.csv"), index=False)
-    print(out.drop(columns="sim_source").to_string(index=False))
-    print("\nSai số (ms) theo kịch bản:")
-    print(out.groupby("scenario").abs_error_ms.agg(["mean", "max"]).to_string())
+    out_dir = Path(cfg["output"]["results_dir"]) / "offset"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out.to_csv(out_dir / "offset_on_sim.csv", index=False)
+    return out
 
 
 if __name__ == "__main__":
-    main()
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--config", default="config_chot.yaml")
+    res = run(ap.parse_args().config)
+    print(res.to_string(index=False))
+    print("\nSai số ước lượng (ms) theo kịch bản:")
+    print(res.groupby("scenario").abs_error_ms.agg(["mean", "max"]).round(2).to_string())

@@ -12,7 +12,7 @@ Code kiểm tra: 1075108, ngày 05/10/2026. `[x]` chỉ việc đã kiểm tra/�
 - [x] Ghép [GROUP_PITCH](reports/GROUP_PITCH.md), gồm phần mở/kết TV1 và lời nói chung.
 - [x] Ghi đầu việc TV2–TV5, không đánh dấu lỗi còn mở thành hoàn thành.
 - [x] Điền họ tên/MSSV TV1: Nguyễn Tuấn Thành — 2A202602640.
-- [ ] Điền tên nhóm; nhận thông tin TV2.
+- [x] Điền tên nhóm Ahihi; nhận thông tin TV2 từ main.
 - [ ] Nghiệm thu chạy lại sau sửa seed/metric/log; thay số cùng lúc ở tài liệu TV1.
 - [ ] Nhận đủ 5 báo cáo, ghép slide theo định dạng trình bày của lớp, tập pitch và tự nộp VLearn.
 

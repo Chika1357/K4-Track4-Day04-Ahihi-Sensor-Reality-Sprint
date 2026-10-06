@@ -1,7 +1,7 @@
 # Báo cáo TV1 — T4: Lệch thời gian và sai số căn chỉnh vị trí
 
 - Họ tên/MSSV: Nguyễn Tuấn Thành — 2A202602640.
-- Tên nhóm: chờ tên chính thức; nhóm có đúng 5 thành viên.
+- Tên nhóm: Ahihi; nhóm có đúng 5 thành viên.
 - Vai trò: chốt thiết kế, điều phối tích hợp, kiểm tra bằng chứng, Problem và Engineering decision.
 - Repository: https://github.com/Chika1357/K4-Track4-Day04-Ahihi-Sensor-Reality-Sprint
 - Code benchmark đã đối chiếu: `107510809f3d8bb988eb53b76310a72603593226`.
@@ -61,4 +61,4 @@ Vòng thử tiếp ưu tiên sửa đối chứng seed và chạy lại, sau đ�
 
 Khi không đủ tin cậy về thời gian/trạng thái, đề xuất đánh dấu dữ liệu chưa căn chỉnh và hạn chế association cứng tới khi kiểm tra lại. Fallback này chưa triển khai/đo; chưa chốt quy tắc 30 ms/0,2 rad/s hoặc chọn PTP/shared trigger từ benchmark. Trước áp dụng thật cần kiểm tra giao diện sensor và đo đồng bộ/latency trên phần cứng thực tế.
 
-Phần nội dung và thông tin cá nhân TV1 đã hoàn thiện; tên nhóm và số sau nghiệm thu cuối cần cập nhật trước nộp. Mỗi người tự nộp bản riêng trên VLearn.
+Phần nội dung và thông tin cá nhân TV1 đã hoàn thiện; số sau nghiệm thu cuối cần cập nhật trước nộp. Mỗi người tự nộp bản riêng trên VLearn.
